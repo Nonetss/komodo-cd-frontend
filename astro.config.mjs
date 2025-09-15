@@ -7,6 +7,9 @@ import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
+  server: {
+    allowedHosts: ["dev.noneweb.online"],
+  },
   vite: {
     envPrefix: "OIDC_",
     plugins: [tailwindcss()],
