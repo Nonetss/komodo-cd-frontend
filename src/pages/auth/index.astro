@@ -1,0 +1,123 @@
+---
+import Main from "@/layouts/main.astro";
+
+// Configurar para renderizado en servidor
+export const prerender = false;
+---
+
+<Main>
+  <div class="min-h-screen bg-background flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+      <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+        <!-- Header -->
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-semibold">Iniciar Sesión</h2>
+          <p class="text-sm text-muted-foreground mt-2">
+            Accede de forma segura
+          </p>
+        </div>
+
+        <!-- Login Button -->
+        <div>
+          <button
+            id="login-btn"
+            class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+          >
+            <span id="login-text" class="flex items-center">
+              Continuar al portal de inicio de sesión
+            </span>
+            <span id="login-spinner" class="hidden items-center">
+              <div class="flex items-center">
+                <svg
+                  class="animate-spin -ml-1 mr-2 h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Redirigiendo...
+              </div>
+            </span>
+          </button>
+
+          <!-- Error Message -->
+          <div
+            id="error-message"
+            class="hidden rounded-lg border border-destructive/50 text-destructive p-3"
+          >
+            <div class="flex items-start gap-2">
+              <svg
+                class="h-4 w-4 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <h3 class="text-sm font-medium">Error de autenticación</h3>
+                <p id="error-text" class="text-sm opacity-90 mt-1"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="mt-6 text-center border-t pt-4">
+            <p class="text-sm text-muted-foreground">
+              ¿Problemas para acceder?
+              <a href="/" class="text-foreground hover:underline ml-1">
+                Volver al inicio
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="text-center mt-4">
+          <p class="text-xs text-muted-foreground">
+            Al continuar, aceptas nuestros términos de servicio.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Main>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const loginBtn = document.getElementById("login-btn") as HTMLButtonElement;
+    const loginText = document.getElementById("login-text");
+    const loginSpinner = document.getElementById("login-spinner");
+
+    loginBtn?.addEventListener("click", function () {
+      // Mostrar spinner y ocultar texto
+      loginText?.classList.add("hidden");
+      loginSpinner?.classList.remove("hidden");
+      loginSpinner?.classList.add("flex");
+
+      // Deshabilitar el botón
+      loginBtn.disabled = true;
+
+      // Redirigir después de un breve delay para mostrar el spinner
+      setTimeout(() => {
+        window.location.href = "/auth/login";
+      }, 800);
+    });
+  });
+</script>
