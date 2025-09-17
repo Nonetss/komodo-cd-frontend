@@ -11,7 +11,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (protectedRoutes.some((route) => url.pathname.startsWith(route))) {
     // Aquí decides cómo comprobar autenticación
     // Ejemplo: token en cookie
-    const token = context.cookies.get("auth_token")?.value;
+    const token = context.cookies.get("access_token")?.value;
 
     if (!token) {
       // No autenticado → redirigir a login
