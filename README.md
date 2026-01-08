@@ -1,13 +1,30 @@
-# Astro with Tailwind
+# Astro Template
 
-```sh
-bun create astro@latest -- --template with-tailwindcss
+Una base sencilla para proyectos con Astro 5.
+
+## Características
+
+- **Astro 5** (modo SSR con Node adapter).
+- **Tailwind CSS 4** y **Shadcn UI** preconfigurados.
+- **Bun** como gestor de paquetes.
+- **Docker** listo para usar con Nginx como reverse proxy.
+- **Linting & Formateo** con Prettier y Husky.
+
+## Desarrollo local
+
+Para empezar a trabajar:
+
+```bash
+bun install
+bun run dev
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/with-tailwindcss)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/with-tailwindcss)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/with-tailwindcss/devcontainer.json)
+## Producción con Docker
 
-Astro comes with [Tailwind](https://tailwindcss.com) support out of the box. This example showcases how to style your Astro project with Tailwind.
+Para levantar el proyecto con Nginx y el proxy configurado:
 
-For complete setup instructions, please see our [Tailwind Integration Guide](https://docs.astro.build/en/guides/integrations-guide/tailwind).
+```bash
+docker compose up --build
+```
+
+El servidor estará disponible en el puerto `4321` (o el que hayas configurado en `compose.yml`).
