@@ -53,7 +53,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-white px-4 font-sans text-white">
+    <div className="bg-background text-foreground flex min-h-screen w-full items-center justify-center px-4 font-sans">
       <Card className="w-full max-w-md rounded-none">
         <CardHeader>
           <CardTitle>Login</CardTitle>
@@ -68,10 +68,7 @@ export const LoginPage = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        className="rounded-none bg-white text-black"
-                      />
+                      <Input {...field} className="rounded-none" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -84,10 +81,7 @@ export const LoginPage = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        className="rounded-none bg-white text-black"
-                      />
+                      <Input {...field} className="rounded-none" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
