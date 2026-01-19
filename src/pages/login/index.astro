@@ -1,0 +1,40 @@
+---
+import Main from '@/layouts/main.astro';
+---
+
+<Main title="Login">
+  <div
+    class="flex min-h-screen items-center justify-center bg-slate-950 font-sans text-white"
+  >
+    <div class="text-center">
+      <h1 class="text-6xl font-bold">Login</h1>
+      <button
+        id="login-btn"
+        class="mt-4 rounded-md bg-blue-500 px-4 py-2 text-white"
+      >
+        Login
+      </button>
+    </div>
+  </div>
+</Main>
+
+<script>
+  import { authClient } from '@/lib/auth';
+
+  const loginBtn = document.getElementById('login-btn');
+
+  loginBtn?.addEventListener('click', async () => {
+    const { data, error } = await authClient.signIn.email({
+      email: 'test@test.com',
+      password: 'testPassword123',
+    });
+    const { data: session } = await authClient.getSession();
+    console.log(session);
+    if (error) {
+      console.error('Error de autenticación:', error);
+      alert(`Error: ${error.message}`);
+    } else {
+      console.log('Login exitoso:', data);
+    }
+  });
+</script>
