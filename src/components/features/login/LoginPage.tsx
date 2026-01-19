@@ -41,6 +41,17 @@ export const LoginPage = () => {
       });
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+    } catch (error) {
+      console.error('Error en login con Google:', error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-white px-4 font-sans text-white">
       <Card className="w-full max-w-md rounded-none">
@@ -87,6 +98,14 @@ export const LoginPage = () => {
               </Button>
             </form>
           </Form>
+          <Button
+            variant="outline"
+            className="mt-4 w-full rounded-none"
+            onClick={handleGoogleLogin}
+          >
+            <img src="/icons/google.svg" alt="Google" className="h-4 w-4" />
+            <p>Google</p>
+          </Button>
         </CardContent>
       </Card>
     </div>
