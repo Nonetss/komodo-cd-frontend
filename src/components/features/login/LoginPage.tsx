@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { navigate } from 'astro/virtual-modules/transitions-router.js';
 
 const loginSchema = z.object({
   email: z.string(),
@@ -30,11 +31,14 @@ export const LoginPage = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    const { data: session } = await authClient.signIn.email({
-      email: data.email,
-      password: data.password,
-    });
-    console.log(session);
+    await authClient.signIn
+      .email({
+        email: data.email,
+        password: data.password,
+      })
+      .then(() => {
+        navigate('/');
+      });
   };
 
   return (

@@ -1,6 +1,7 @@
 ---
 import Main from '@/layouts/main.astro';
 import { Button } from '@/components/ui/button';
+import { ButtonLogOut } from '@/components/features/login/buttonLogOut';
 const { user } = Astro.locals;
 ---
 
@@ -13,9 +14,23 @@ const { user } = Astro.locals;
       <p class="mt-4 text-xl font-light text-slate-400">
         Template para proyectos Astro. Con React, TailwindCSS y Shadcn UI.
       </p>
-      <Button className="mt-10 w-full rounded-none">
-        <a href="/login" class="w-full">Login</a>
-      </Button>
+      <div class="mt-10 flex gap-4">
+        {
+          user ? (
+            <div class="flex w-full items-center justify-center">
+              <ButtonLogOut client:only="react" />
+            </div>
+          ) : (
+            <div class="flex w-full items-center justify-center">
+              <Button className="w-full rounded-none">
+                <a href="/login" class="w-full">
+                  Login
+                </a>
+              </Button>
+            </div>
+          )
+        }
+      </div>
     </div>
   </div>
 </Main>
