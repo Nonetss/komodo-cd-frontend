@@ -1,5 +1,6 @@
 ---
 import Main from '@/layouts/main.astro';
+import { Button } from '@/components/ui/button';
 ---
 
 <Main title="Hola Mundo">
@@ -11,6 +12,9 @@ import Main from '@/layouts/main.astro';
       <p class="mt-4 text-xl font-light text-slate-400">
         Template para proyectos Astro. Con React, TailwindCSS y Shadcn UI.
       </p>
+      <Button className="mt-10 w-full rounded-none">
+        <a href="/login" class="w-full">Login</a>
+      </Button>
     </div>
   </div>
 </Main>
