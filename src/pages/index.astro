@@ -1,6 +1,7 @@
 ---
 import Main from '@/layouts/main.astro';
 import { Button } from '@/components/ui/button';
+const { user } = Astro.locals;
 ---
 
 <Main title="Hola Mundo">
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
     class="flex min-h-screen items-center justify-center bg-white font-sans text-black"
   >
     <div class="text-center">
-      <h1 class="text-6xl font-bold text-black">Hola Mundo</h1>
+      <h1 class="text-6xl font-bold text-black">Hola {user?.name}</h1>
       <p class="mt-4 text-xl font-light text-slate-400">
         Template para proyectos Astro. Con React, TailwindCSS y Shadcn UI.
       </p>
