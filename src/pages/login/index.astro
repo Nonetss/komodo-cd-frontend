@@ -10,24 +10,3 @@ import { LoginPage } from '@/components/features/login/LoginPage';
     <LoginPage client:only="react" />
   </div>
 </Main>
-
-<script>
-  import { authClient } from '@/lib/auth';
-
-  const loginBtn = document.getElementById('login-btn');
-
-  loginBtn?.addEventListener('click', async () => {
-    const { data, error } = await authClient.signIn.email({
-      email: 'test@test.com',
-      password: 'testPassword123',
-    });
-    const { data: session } = await authClient.getSession();
-    console.log(session);
-    if (error) {
-      console.error('Error de autenticación:', error);
-      alert(`Error: ${error.message}`);
-    } else {
-      console.log('Login exitoso:', data);
-    }
-  });
-</script>
