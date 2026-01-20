@@ -52,6 +52,17 @@ export const LoginPage = () => {
     }
   };
 
+  const handleSSOLogin = async () => {
+    try {
+      await authClient.signIn.sso({
+        providerId: 'authentik',
+        callbackURL: '/',
+      });
+    } catch (error) {
+      console.error('Error en login con SSO:', error);
+    }
+  };
+
   return (
     <div className="bg-background text-foreground flex min-h-screen w-full items-center justify-center px-4 font-sans">
       <Card className="w-full max-w-md rounded-none">
@@ -99,6 +110,13 @@ export const LoginPage = () => {
           >
             <img src="/icons/google.svg" alt="Google" className="h-4 w-4" />
             <p>Google</p>
+          </Button>
+          <Button
+            variant="outline"
+            className="mt-4 w-full rounded-none"
+            onClick={handleSSOLogin}
+          >
+            <p>SSO</p>
           </Button>
         </CardContent>
       </Card>
