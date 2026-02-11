@@ -1,11 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Cargar el PATH del usuario si está disponible
-if [ -f ~/.zshrc ]; then
-  . ~/.zshrc 2>/dev/null || true
-elif [ -f ~/.bashrc ]; then
-  . ~/.bashrc 2>/dev/null || true
-fi
+# Asegurar que bun esté en el PATH (Husky 9+ no usa husky.sh)
+export PATH="$HOME/.bun/bin:$PATH"
 
 bun x lint-staged
