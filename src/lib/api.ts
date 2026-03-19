@@ -18,7 +18,7 @@ export interface SaveCredentialPayload {
   secret: string;
 }
 
-export type DeployAction = 'pull' | 'redeploy';
+export type DeployAction = 'pull' | 'redeploy' | 'pull-redeploy';
 
 export interface TriggerDeployPayload {
   stack: string;

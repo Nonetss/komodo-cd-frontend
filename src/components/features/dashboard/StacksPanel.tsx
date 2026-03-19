@@ -6,6 +6,9 @@ import {
   AlertTriangle,
   Search,
   X,
+  Copy,
+  Check,
+  Terminal,
 } from 'lucide-react';
 import {
   stacksApi,
@@ -18,9 +21,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
+const APP_URL =
+  (import.meta.env.PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ??
+  (typeof window !== 'undefined'
+    ? window.location.origin
+    : 'http://localhost:4321');
+
 const ACTIONS: { value: DeployAction; label: string }[] = [
   { value: 'pull', label: 'Pull' },
   { value: 'redeploy', label: 'Redeploy' },
+  { value: 'pull-redeploy', label: 'Pull + Redeploy' },
+];
+
+const CURL_ACTIONS: { value: DeployAction; label: string }[] = [
+  { value: 'pull', label: 'Pull' },
+  { value: 'redeploy', label: 'Redeploy' },
+  { value: 'pull-redeploy', label: 'Pull + Redeploy' },
 ];
 
 const STATE_STYLES: Record<
@@ -96,6 +112,60 @@ function StateBadge({ state }: { state: StackState }) {
   );
 }
 
+function CurlSnippet({ stackName }: { stackName: string }) {
+  const [open, setOpen] = useState(false);
+  const [copiedAction, setCopiedAction] = useState<string | null>(null);
+
+  const curl = (action: DeployAction) =>
+    `curl -X POST ${APP_URL}/api/v0/deploy \\\n  -H "x-api-key: <tu-api-key>" \\\n  -H "Content-Type: application/json" \\\n  -d '{"stack":"${stackName}","action":"${action}"}'`;
+
+  const copy = (action: DeployAction) => {
+    navigator.clipboard.writeText(curl(action));
+    setCopiedAction(action);
+    setTimeout(() => setCopiedAction(null), 2000);
+  };
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs transition-colors"
+      >
+        <Terminal className="h-3.5 w-3.5" />
+        {open ? 'Ocultar curls' : 'Ver curls'}
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-2">
+          {CURL_ACTIONS.map((a) => (
+            <div key={a.value} className="bg-muted rounded-md p-3">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+                  {a.label}
+                </span>
+                <button
+                  onClick={() => copy(a.value)}
+                  className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors"
+                >
+                  {copiedAction === a.value ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedAction === a.value ? 'Copiado' : 'Copiar'}
+                </button>
+              </div>
+              <pre className="text-foreground overflow-x-auto font-mono text-xs leading-relaxed break-all whitespace-pre-wrap">
+                {curl(a.value)}
+              </pre>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type ActionResult = { success: boolean; message: string };
 
 export const StacksPanel = () => {
@@ -154,16 +224,18 @@ export const StacksPanel = () => {
     return Array.from(seen).sort();
   }, [stacks]);
 
-  const filtered = useMemo(() => {
-    return stacks.filter((stack) => {
-      const matchesSearch =
-        search.trim() === '' ||
-        stack.name.toLowerCase().includes(search.toLowerCase().trim());
-      const matchesState =
-        filterState === null || stack.info.state === filterState;
-      return matchesSearch && matchesState;
-    });
-  }, [stacks, search, filterState]);
+  const filtered = useMemo(
+    () =>
+      stacks.filter((stack) => {
+        const matchesSearch =
+          search.trim() === '' ||
+          stack.name.toLowerCase().includes(search.toLowerCase().trim());
+        const matchesState =
+          filterState === null || stack.info.state === filterState;
+        return matchesSearch && matchesState;
+      }),
+    [stacks, search, filterState],
+  );
 
   const hasFilters = search.trim() !== '' || filterState !== null;
 
@@ -192,7 +264,6 @@ export const StacksPanel = () => {
       <CardContent>
         {error && <p className="text-destructive mb-3 text-sm">{error}</p>}
 
-        {/* Search & Filters */}
         {stacks.length > 0 && (
           <div className="mb-5 space-y-3">
             <div className="relative">
@@ -212,7 +283,6 @@ export const StacksPanel = () => {
                 </button>
               )}
             </div>
-
             {availableStates.length > 1 && (
               <div className="flex flex-wrap gap-2">
                 {availableStates.map((state) => {
@@ -225,15 +295,10 @@ export const StacksPanel = () => {
                     <button
                       key={state}
                       onClick={() => setFilterState(isActive ? null : state)}
-                      className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
-                        isActive
-                          ? s.badge
-                          : 'border-border text-muted-foreground hover:text-foreground hover:border-border/80 bg-secondary'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${isActive ? s.badge : 'border-border text-muted-foreground hover:text-foreground bg-secondary'}`}
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                      {s.label}
-                      <span className="opacity-60">({count})</span>
+                      {s.label} <span className="opacity-60">({count})</span>
                     </button>
                   );
                 })}
@@ -245,8 +310,7 @@ export const StacksPanel = () => {
                     }}
                     className="border-border text-muted-foreground hover:text-foreground bg-secondary inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-colors"
                   >
-                    <X className="h-3 w-3" />
-                    Limpiar
+                    <X className="h-3 w-3" /> Limpiar
                   </button>
                 )}
               </div>
@@ -259,7 +323,6 @@ export const StacksPanel = () => {
             No hay stacks o no hay credenciales configuradas.
           </p>
         )}
-
         {filtered.length === 0 && stacks.length > 0 && (
           <p className="text-muted-foreground text-sm">
             No hay stacks que coincidan con los filtros.
@@ -281,7 +344,6 @@ export const StacksPanel = () => {
                 key={stack.id}
                 className="border-border bg-card space-y-3 rounded-lg border p-4"
               >
-                {/* Header */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-semibold">{stack.name}</p>
@@ -294,7 +356,6 @@ export const StacksPanel = () => {
                   <StateBadge state={info.state} />
                 </div>
 
-                {/* Repo / branch / commits */}
                 {info.repo && (
                   <div className="text-muted-foreground space-y-1 text-sm">
                     <div className="flex items-center gap-1.5">
@@ -326,7 +387,6 @@ export const StacksPanel = () => {
                   </div>
                 )}
 
-                {/* Warnings */}
                 {(info.project_missing || info.missing_files?.length > 0) && (
                   <div className="text-destructive flex items-center gap-1.5 text-sm">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
@@ -336,7 +396,6 @@ export const StacksPanel = () => {
                   </div>
                 )}
 
-                {/* Services */}
                 {info.services?.length > 0 && (
                   <div className="space-y-1">
                     {info.services.map((svc) => (
@@ -360,7 +419,6 @@ export const StacksPanel = () => {
                   </div>
                 )}
 
-                {/* Actions */}
                 <div className="flex flex-wrap gap-2 pt-1">
                   {ACTIONS.map((a) => (
                     <Button
@@ -384,6 +442,8 @@ export const StacksPanel = () => {
                     {result.message}
                   </p>
                 )}
+
+                <CurlSnippet stackName={stack.name} />
               </div>
             );
           })}
