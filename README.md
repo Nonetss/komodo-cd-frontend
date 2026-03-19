@@ -1,6 +1,8 @@
 # Komodo Frontend
 
-Dashboard web para gestionar deploys sobre stacks de [Komodo](https://komo.do). Construido con **Astro 6** + **React 19**, **Tailwind CSS 4** y **Shadcn UI**. Se comunica con el [backend](../backend) via proxy Nginx en producción.
+> Parte de [Komodo CD](https://github.com/Nonetss/komodo-cd-frontend). Backend en [Nonetss/komodo-cd-backend](https://github.com/Nonetss/komodo-cd-backend).
+
+Dashboard web para gestionar deploys sobre stacks de [Komodo](https://komo.do). Construido con **Astro 6** + **React 19**, **Tailwind CSS 4** y **Shadcn UI**. Se comunica con el [backend](https://github.com/Nonetss/komodo-cd-backend) via proxy Nginx en producción.
 
 ## Stack
 
