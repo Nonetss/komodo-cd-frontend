@@ -13,13 +13,16 @@ export default defineConfig({
     plugins: [tailwindcss()],
     server: {
       proxy: {
-        '/api': {
+        '^/api/': {
           target: 'http://localhost:3000',
           changeOrigin: true,
         },
       },
     },
     envPrefix: ['BETTER_AUTH_'],
+  },
+  prefetch: {
+    prefetchAll: true,
   },
 
   integrations: [react()],
