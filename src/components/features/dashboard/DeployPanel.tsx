@@ -144,7 +144,7 @@ export const DeployPanel = () => {
                         {showSuggestions && suggestions.length > 0 && (
                           <div
                             ref={suggestionsRef}
-                            className="border-border absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-md border shadow-xl"
+                            className="border-border absolute top-full right-0 left-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-md border shadow-xl"
                             style={{ backgroundColor: '#111111' }}
                           >
                             {suggestions.map((name) => (
