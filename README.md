@@ -1,50 +1,50 @@
 # Komodo Frontend
 
-> Parte de [Komodo CD](https://github.com/Nonetss/komodo-cd-frontend). Backend en [Nonetss/komodo-cd-backend](https://github.com/Nonetss/komodo-cd-backend).
+> Part of [Komodo CD](https://github.com/Nonetss/komodo-cd-frontend). Backend at [Nonetss/komodo-cd-backend](https://github.com/Nonetss/komodo-cd-backend).
 
-Dashboard web para gestionar deploys sobre stacks de [Komodo](https://komo.do). Construido con **Astro 6** + **React 19**, **Tailwind CSS 4** y **Shadcn UI**. Se comunica con el [backend](https://github.com/Nonetss/komodo-cd-backend) via proxy Nginx en producción.
+Web dashboard to manage deploys on [Komodo](https://komo.do) stacks. Built with **Astro 6** + **React 19**, **Tailwind CSS 4**, and **Shadcn UI**. It communicates with the [backend](https://github.com/Nonetss/komodo-cd-backend) through an Nginx proxy in production.
 
 ## Stack
 
-- **[Astro 6](https://astro.build/)** — SSR con Node adapter
-- **[React 19](https://react.dev/)** — Componentes interactivos
+- **[Astro 6](https://astro.build/)** — SSR with Node adapter
+- **[React 19](https://react.dev/)** — Interactive components
 - **[Tailwind CSS 4](https://tailwindcss.com/)** + **[Shadcn UI](https://ui.shadcn.com/)** — UI
-- **[Better Auth](https://www.better-auth.com/)** — Cliente de autenticación con soporte de sesión
-- **[Bun](https://bun.sh/)** — Runtime y gestor de paquetes
-- **Nginx** — Reverse proxy en producción (une frontend + backend en un solo puerto)
+- **[Better Auth](https://www.better-auth.com/)** — Auth client with session support
+- **[Bun](https://bun.sh/)** — Runtime and package manager
+- **Nginx** — Production reverse proxy (joins frontend + backend on a single port)
 
-## Funcionalidades
+## Features
 
-- **Stacks** — Vista de todos los stacks de Komodo con estado, servicios, repo y commits. Acciones por stack: Pull, Redeploy, Pull + Redeploy. Snippets curl copiables por stack y acción.
-- **Historial** — Registro de todas las acciones ejecutadas con usuario, resultado y timestamp.
-- **Deploy manual** — Formulario con autocompletado de stacks para disparar deploys.
-- **Credenciales** — Gestión de las credenciales de Komodo (URL, API key, secret).
-- **API Keys** — Crear, listar y revocar API Keys para usar desde CI/CD.
+- **Stacks** — View all Komodo stacks with status, services, repo, and commits. Per-stack actions: Pull, Redeploy, Pull + Redeploy. Copyable curl snippets per stack and action.
+- **History** — Log of all executed actions with user, result, and timestamp.
+- **Manual deploy** — Form with stack autocomplete to trigger deploys.
+- **Credentials** — Manage Komodo credentials (URL, API key, secret).
+- **API Keys** — Create, list, and revoke API keys for CI/CD.
 
-## Desarrollo
+## Development
 
 ```bash
 bun install
 cp .env.example .env
-# Editar .env con tus valores
+# Edit .env with your values
 bun dev
 ```
 
-Requiere el backend corriendo en `http://localhost:3000`. El servidor de desarrollo arranca en `http://localhost:4321` y proxea `/api/*` al backend automáticamente.
+Requires backend running at `http://localhost:3000`. Dev server starts at `http://localhost:4321` and automatically proxies `/api/*` to the backend.
 
-## Variables de entorno
+## Environment variables
 
-| Variable          | Build-time | Descripción                                                                                                           |
-| ----------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
-| `BETTER_AUTH_URL` | ✅         | URL base para las llamadas de better-auth (`/api/auth/*`). En producción: la URL pública de la app                    |
-| `PUBLIC_APP_URL`  | ✅         | URL que se muestra en los snippets curl del dashboard. Si no se define, se usa `window.location.origin` como fallback |
-| `BACKEND_URL`     | —          | URL interna al backend. La usa Nginx para el proxy. Solo relevante en Docker (por defecto `http://backend:3000`)      |
+| Variable          | Build-time | Description                                                                                               |
+| ----------------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_URL` | ✅         | Base URL for better-auth calls (`/api/auth/*`). In production: the public app URL                         |
+| `PUBLIC_APP_URL`  | ✅         | URL shown in dashboard curl snippets. If unset, `window.location.origin` is used as fallback              |
+| `BACKEND_URL`     | —          | Internal backend URL. Used by Nginx for proxying. Only relevant in Docker (default `http://backend:3000`) |
 
-> Las variables marcadas como **Build-time** se hornean en el bundle durante `bun run build`. Hay que pasarlas como `ARG` al construir la imagen Docker.
+> Variables marked as **Build-time** are baked into the bundle during `bun run build`. Pass them as `ARG` when building the Docker image.
 
 ## Docker
 
-La imagen incluye Nginx que actúa como reverse proxy: sirve el frontend Astro en `/` y redirige `/api/*` al contenedor backend.
+The image includes Nginx as reverse proxy: it serves the Astro frontend on `/` and routes `/api/*` to the backend container.
 
 ```bash
 docker build \
@@ -58,44 +58,44 @@ docker run -d \
   komodo-frontend
 ```
 
-O con el `docker-compose.yml` del repositorio raíz (recomendado):
+Or with the root repository `docker-compose.yml` (recommended):
 
 ```bash
 cp ../.env.example ../.env
-# Editar ../.env
+# Edit ../.env
 docker compose -f ../docker-compose.yml up -d --build
 ```
 
 ## CI/CD
 
-El repositorio incluye un workflow de GitHub Actions (`.github/workflows/docker-build.yml`) que construye y publica la imagen en GHCR automáticamente en cada push a `main` o ramas con prefijo `v*`.
+The repository includes a GitHub Actions workflow (`.github/workflows/docker-build.yml`) that builds and publishes the image to GHCR automatically on every push to `main` or branches with `v*` prefix.
 
-La imagen se publica como `ghcr.io/<owner>/<repo>:latest`.
+The image is published as `ghcr.io/<owner>/<repo>:latest`.
 
-## Estructura
+## Structure
 
 ```
 src/
 ├── components/
 │   ├── features/
 │   │   └── dashboard/
-│   │       ├── Dashboard.tsx        # Tabs principales
-│   │       ├── StacksPanel.tsx      # Vista de stacks + acciones + curls
-│   │       ├── HistoryPanel.tsx     # Historial de acciones
-│   │       ├── DeployPanel.tsx      # Deploy manual
-│   │       ├── CredentialsPanel.tsx # Gestión de credenciales
-│   │       └── ApiKeysPanel.tsx     # Gestión de API Keys
-│   └── ui/                          # Componentes Shadcn UI
+│   │       ├── Dashboard.tsx        # Main tabs
+│   │       ├── StacksPanel.tsx      # Stacks view + actions + curls
+│   │       ├── HistoryPanel.tsx     # Action history
+│   │       ├── DeployPanel.tsx      # Manual deploy
+│   │       ├── CredentialsPanel.tsx # Credentials management
+│   │       └── ApiKeysPanel.tsx     # API keys management
+│   └── ui/                          # Shadcn UI components
 ├── lib/
-│   ├── api.ts                       # Cliente axios con todos los endpoints
-│   └── auth.ts                      # Cliente Better Auth
+│   ├── api.ts                       # Axios client with all endpoints
+│   └── auth.ts                      # Better Auth client
 ├── pages/
-│   ├── index.astro                  # Redirige a /dashboard o /login
-│   ├── dashboard.astro              # Dashboard principal (protegida)
-│   └── login/                       # Página de login
-├── middleware.ts                    # Protección de rutas por sesión
+│   ├── index.astro                  # Redirects to /dashboard or /login
+│   ├── dashboard.astro              # Main dashboard (protected)
+│   └── login/                       # Login page
+├── middleware.ts                    # Session-based route protection
 └── styles/
 gateway/
-└── nginx.conf                       # Config de Nginx (con envsubst)
-entrypoint.sh                        # Arranca Astro + Nginx
+└── nginx.conf                       # Nginx config (with envsubst)
+entrypoint.sh                        # Starts Astro + Nginx
 ```
