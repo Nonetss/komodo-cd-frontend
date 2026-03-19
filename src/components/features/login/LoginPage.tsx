@@ -48,7 +48,7 @@ export const LoginPage = () => {
       <div className="w-full max-w-sm space-y-6">
         {/* Brand */}
         <div className="flex flex-col items-center gap-3">
-          <img src="/logo.webp" alt="Komodo CD" className="h-16 w-auto" />
+          <img src="/logo.svg" alt="Komodo CD" className="h-16 w-auto" />
           <span className="text-lg font-semibold tracking-tight">
             Komodo CD
           </span>
