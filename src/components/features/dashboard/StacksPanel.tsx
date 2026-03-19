@@ -247,8 +247,8 @@ export const StacksPanel = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
+        <CardTitle className="flex min-w-0 items-center gap-2">
           Stacks
           {stacks.length > 0 && (
             <span className="text-muted-foreground text-sm font-normal">
@@ -333,7 +333,7 @@ export const StacksPanel = () => {
                 key={i}
                 className="border-border space-y-3 rounded-lg border p-4"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-3 w-48" />
@@ -380,7 +380,7 @@ export const StacksPanel = () => {
                   <div>
                     <p className="font-semibold">{stack.name}</p>
                     {info.status && (
-                      <p className="text-muted-foreground mt-0.5 text-sm">
+                      <p className="text-muted-foreground mt-0.5 text-sm wrap-break-word">
                         {info.status}
                       </p>
                     )}
@@ -390,7 +390,7 @@ export const StacksPanel = () => {
 
                 {info.repo && (
                   <div className="text-muted-foreground space-y-1 text-sm">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <GitBranch className="h-3.5 w-3.5 shrink-0" />
                       <a
                         href={info.repo_link || '#'}
@@ -401,16 +401,16 @@ export const StacksPanel = () => {
                         {info.repo}
                       </a>
                       <span className="text-border">·</span>
-                      <span>{info.branch}</span>
+                      <span className="break-all">{info.branch}</span>
                     </div>
                     {(info.deployed_hash || info.latest_hash) && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <GitCommit className="h-3.5 w-3.5 shrink-0" />
-                        <span className="font-mono text-xs">
+                        <span className="font-mono text-xs break-all">
                           {info.deployed_hash ?? '—'}
                         </span>
                         {hasUpdate && (
-                          <span className="text-primary text-xs font-medium">
+                          <span className="text-primary text-xs font-medium break-all">
                             → {info.latest_hash} (update disponible)
                           </span>
                         )}
@@ -420,7 +420,7 @@ export const StacksPanel = () => {
                 )}
 
                 {(info.project_missing || info.missing_files?.length > 0) && (
-                  <div className="text-destructive flex items-center gap-1.5 text-sm">
+                  <div className="text-destructive flex items-center gap-1.5 text-sm wrap-break-word">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     {info.project_missing
                       ? 'Proyecto no encontrado en el host'
@@ -433,11 +433,11 @@ export const StacksPanel = () => {
                     {info.services.map((svc) => (
                       <div
                         key={svc.service}
-                        className="bg-muted flex items-center justify-between rounded-md px-3 py-1.5 text-sm"
+                        className="bg-muted flex flex-wrap items-center justify-between gap-2 rounded-md px-3 py-1.5 text-sm"
                       >
                         <span className="font-medium">{svc.service}</span>
-                        <div className="text-muted-foreground flex items-center gap-2">
-                          <span className="max-w-[200px] truncate font-mono text-xs">
+                        <div className="text-muted-foreground flex min-w-0 items-center gap-2">
+                          <span className="max-w-full truncate font-mono text-xs sm:max-w-[200px]">
                             {svc.image}
                           </span>
                           {svc.update_available && (

@@ -118,26 +118,27 @@ export const CredentialsPanel = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-3">
       {/* Left: list + add button */}
       <div className="space-y-4 lg:col-span-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
             <h2 className="text-xl font-semibold">Credenciales Komodo</h2>
             <p className="text-muted-foreground mt-0.5 text-sm">
               Conexiones a instancias externas de Komodo
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button
               variant="outline"
-              size="icon"
               onClick={fetchCredentials}
               disabled={loading}
+              className="w-full shrink-0 sm:w-auto"
             >
               <RefreshCw
                 className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
               />
+              <span className="sm:hidden">Actualizar</span>
             </Button>
             <Button
               onClick={() => {
@@ -145,6 +146,7 @@ export const CredentialsPanel = () => {
                 setError(null);
                 setSuccessMsg(null);
               }}
+              className="w-full shrink-0 sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               {showForm ? 'Cancelar' : 'Añadir credencial'}
@@ -240,10 +242,11 @@ export const CredentialsPanel = () => {
                       )}
                     />
                   </div>
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
                     <Button
                       type="button"
                       variant="outline"
+                      className="w-full sm:w-auto"
                       onClick={() => {
                         setShowForm(false);
                         form.reset();
@@ -251,7 +254,9 @@ export const CredentialsPanel = () => {
                     >
                       Cancelar
                     </Button>
-                    <Button type="submit">Guardar credencial</Button>
+                    <Button type="submit" className="w-full sm:w-auto">
+                      Guardar credencial
+                    </Button>
                   </div>
                 </form>
               </Form>
@@ -339,7 +344,7 @@ export const CredentialsPanel = () => {
                       className={
                         confirmDeleteId === cred.id
                           ? 'shrink-0'
-                          : 'text-muted-foreground hover:text-destructive shrink-0 opacity-0 transition-opacity group-hover:opacity-100'
+                          : 'text-muted-foreground hover:text-destructive shrink-0 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100'
                       }
                       disabled={deletingId === cred.id}
                       onClick={() => handleDelete(cred)}

@@ -43,7 +43,7 @@ export const HistoryPanel = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle>Historial</CardTitle>
         <Button
           variant="outline"
@@ -110,7 +110,7 @@ export const HistoryPanel = () => {
                   </span>
                 </div>
                 {item.message && (
-                  <p className="text-muted-foreground truncate text-xs">
+                  <p className="text-muted-foreground text-xs wrap-break-word">
                     {item.message}
                   </p>
                 )}

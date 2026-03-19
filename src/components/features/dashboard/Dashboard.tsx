@@ -57,15 +57,11 @@ export const Dashboard = () => {
       {tab === 'stacks' && <StacksPanel />}
       {tab === 'history' && <HistoryPanel />}
       {tab === 'deploy' && (
-        <div className="max-w-md">
+        <div className="w-full max-w-md">
           <DeployPanel />
         </div>
       )}
-      {tab === 'credentials' && (
-        <div className="max-w-md">
-          <CredentialsPanel />
-        </div>
-      )}
+      {tab === 'credentials' && <CredentialsPanel />}
       {tab === 'apikeys' && <ApiKeysPanel />}
     </div>
   );

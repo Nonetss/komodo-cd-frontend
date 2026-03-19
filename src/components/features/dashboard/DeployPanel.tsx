@@ -114,7 +114,7 @@ export const DeployPanel = () => {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="w-full max-w-2xl space-y-6">
       <div>
         <h2 className="text-xl font-semibold">Trigger Deploy</h2>
         <p className="text-muted-foreground mt-0.5 text-sm">
@@ -183,7 +183,7 @@ export const DeployPanel = () => {
                   <FormItem>
                     <FormLabel>Acción</FormLabel>
                     <FormControl>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {ACTIONS.map((a) => (
                           <button
                             key={a.value}

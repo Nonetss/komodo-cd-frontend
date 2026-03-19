@@ -1,7 +1,10 @@
 import { createAuthClient } from 'better-auth/react';
 
-// import.meta.env se inlinea en build-time y puede quedar undefined en producción.
-// process.env siempre está disponible en runtime (Node/SSR).
-const baseURL = import.meta.env.BACKEND_URL;
+const baseURL =
+  import.meta.env.BETTER_AUTH_URL ||
+  process.env.BETTER_AUTH_URL ||
+  import.meta.env.PUBLIC_APP_URL ||
+  process.env.PUBLIC_APP_URL ||
+  'http://localhost:4321';
 
 export const authClient = createAuthClient({ baseURL });

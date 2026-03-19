@@ -90,9 +90,9 @@ export const ApiKeysPanel = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle>API Keys</CardTitle>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -122,7 +122,7 @@ export const ApiKeysPanel = () => {
             <p className="text-sm font-medium text-emerald-400">
               Key creada. Cópiala ahora, no se mostrará de nuevo.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 readOnly
                 value={createdKey}
@@ -145,7 +145,7 @@ export const ApiKeysPanel = () => {
             <p className="text-muted-foreground text-xs">
               Úsala en GitHub Actions:
             </p>
-            <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">
+            <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs break-all whitespace-pre-wrap">
               {`curl -X POST ${APP_URL}/api/v0/deploy \\
   -H "x-api-key: ${createdKey}" \\
   -H "Content-Type: application/json" \\
@@ -155,14 +155,17 @@ export const ApiKeysPanel = () => {
         )}
 
         {showForm && (
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
               placeholder="nombre (ej: github-actions)"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
-            <Button className="shrink-0" onClick={handleCreate}>
+            <Button
+              className="w-full shrink-0 sm:w-auto"
+              onClick={handleCreate}
+            >
               Crear
             </Button>
           </div>
@@ -195,11 +198,11 @@ export const ApiKeysPanel = () => {
           {keys.map((k) => (
             <div
               key={k.id}
-              className="border-border bg-card flex items-center justify-between rounded-lg border p-3"
+              className="border-border bg-card flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium">{k.name ?? '—'}</p>
-                <p className="text-muted-foreground font-mono text-xs">
+                <p className="text-muted-foreground font-mono text-xs break-all">
                   {k.start ? `${k.start}...` : k.id}
                 </p>
                 <p className="text-muted-foreground text-xs">
