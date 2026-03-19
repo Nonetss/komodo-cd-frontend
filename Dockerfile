@@ -3,30 +3,35 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install
 COPY . .
+
+# Variables hornadas en el bundle en tiempo de build.
+# PUBLIC_APP_URL: si no se pasa, el cliente usa window.location.origin como fallback.
+# BETTER_AUTH_URL: base para las llamadas de better-auth (/api/auth/*).
+ARG PUBLIC_APP_URL
+ARG BETTER_AUTH_URL
+ENV PUBLIC_APP_URL=$PUBLIC_APP_URL
+ENV BETTER_AUTH_URL=$BETTER_AUTH_URL
+
 RUN bun run build
 
+# ── Imagen final ─────────────────────────────────────────────────────────────
 FROM oven/bun:1
 WORKDIR /app
 
-# Instalar Nginx y gettext (para envsubst)
 RUN apt-get update && apt-get install -y nginx gettext-base && rm -rf /var/lib/apt/lists/*
 
-# Copiar el build y las dependencias
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/gateway/nginx.conf ./gateway/nginx.conf
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 
-# Dar permisos de ejecución al script
 RUN chmod +x /app/entrypoint.sh
 
-# Variables de entorno para Astro (interno)
+# Astro SSR corre internamente en el puerto 4321
 ENV HOST=0.0.0.0
 ENV PORT=4321
 
-# Exponer el puerto de Nginx
+# Nginx escucha en el 80 y hace proxy al backend y al Astro
 EXPOSE 80
-
-# Usar el script como punto de entrada
 CMD ["/app/entrypoint.sh"]
