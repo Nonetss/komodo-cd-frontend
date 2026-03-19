@@ -5,6 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
+const APP_URL =
+  (import.meta.env.PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ??
+  (typeof window !== 'undefined'
+    ? window.location.origin
+    : 'http://localhost:4321');
+
 export const ApiKeysPanel = () => {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(false);
@@ -117,7 +123,7 @@ export const ApiKeysPanel = () => {
               Úsala en GitHub Actions:
             </p>
             <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">
-              {`curl -X POST https://tu-dominio.com/api/v0/deploy \\
+              {`curl -X POST ${APP_URL}/api/v0/deploy \\
   -H "x-api-key: ${createdKey}" \\
   -H "Content-Type: application/json" \\
   -d '{"stack":"mi-stack","action":"redeploy"}'`}
