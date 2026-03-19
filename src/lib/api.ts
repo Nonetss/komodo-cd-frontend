@@ -18,11 +18,7 @@ export interface SaveCredentialPayload {
   secret: string;
 }
 
-export type DeployAction =
-  | 'build'
-  | 'pull'
-  | 'redeploy'
-  | 'build-pull-redeploy';
+export type DeployAction = 'pull' | 'redeploy';
 
 export interface TriggerDeployPayload {
   stack: string;
@@ -55,10 +51,44 @@ export const deployApi = {
     }>('/deploy', data),
 };
 
+export type StackState =
+  | 'running'
+  | 'deploying'
+  | 'stopped'
+  | 'paused'
+  | 'created'
+  | 'restarting'
+  | 'dead'
+  | 'removing'
+  | 'unhealthy'
+  | 'down'
+  | 'unknown';
+
+export interface StackService {
+  service: string;
+  image: string;
+  update_available: boolean;
+}
+
+export interface StackInfo {
+  state: StackState;
+  status?: string;
+  server_id: string;
+  repo: string;
+  branch: string;
+  repo_link: string;
+  deployed_hash?: string;
+  latest_hash?: string;
+  services: StackService[];
+  project_missing: boolean;
+  missing_files: string[];
+}
+
 export interface Stack {
   id: string;
   name: string;
-  [key: string]: unknown;
+  tags: string[];
+  info: StackInfo;
 }
 
 export const stacksApi = {

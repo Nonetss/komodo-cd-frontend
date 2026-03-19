@@ -16,15 +16,13 @@ import {
 } from '@/components/ui/form';
 
 const ACTIONS: { value: DeployAction; label: string }[] = [
-  { value: 'build', label: 'Build' },
   { value: 'pull', label: 'Pull' },
   { value: 'redeploy', label: 'Redeploy' },
-  { value: 'build-pull-redeploy', label: 'Build + Pull + Redeploy' },
 ];
 
 const deploySchema = z.object({
   stack: z.string().min(1, 'Requerido'),
-  action: z.enum(['build', 'pull', 'redeploy', 'build-pull-redeploy']),
+  action: z.enum(['pull', 'redeploy']),
 });
 
 type DeployFormValues = z.infer<typeof deploySchema>;
@@ -38,7 +36,7 @@ export const DeployPanel = () => {
 
   const form = useForm<DeployFormValues>({
     resolver: zodResolver(deploySchema),
-    defaultValues: { stack: '', action: 'redeploy' },
+    defaultValues: { stack: '', action: 'redeploy' as const },
   });
 
   const onSubmit = async (data: DeployFormValues) => {
