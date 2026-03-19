@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '@/layouts/dashboard.astro';
+import { HistoryPanel } from '@/components/features/dashboard/HistoryPanel';
+---
+
+<DashboardLayout title="Historial">
+  <HistoryPanel client:only="react" />
+</DashboardLayout>

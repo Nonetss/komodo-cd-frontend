@@ -103,6 +103,22 @@ export interface ApiKey {
   expiresAt: string | null;
 }
 
+export interface HistoryItem {
+  id: number;
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+  stack: string;
+  action: string;
+  success: boolean;
+  message: string | null;
+  createdAt: string;
+}
+
+export const historyApi = {
+  list: () => api.get<{ success: boolean; history: HistoryItem[] }>('/history'),
+};
+
 export const apiKeysApi = {
   list: () => api.get<{ success: boolean; keys: ApiKey[] }>('/apikeys'),
   create: (name: string) =>

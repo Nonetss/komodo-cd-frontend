@@ -1,5 +1,12 @@
-import { useState, useEffect } from 'react';
-import { RefreshCw, GitBranch, GitCommit, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  RefreshCw,
+  GitBranch,
+  GitCommit,
+  AlertTriangle,
+  Search,
+  X,
+} from 'lucide-react';
 import {
   stacksApi,
   deployApi,
@@ -8,6 +15,7 @@ import {
   type DeployAction,
 } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const ACTIONS: { value: DeployAction; label: string }[] = [
@@ -20,58 +28,58 @@ const STATE_STYLES: Record<
   { dot: string; badge: string; label: string }
 > = {
   running: {
-    dot: 'bg-green-500',
-    badge: 'bg-green-50 text-green-700 border-green-200',
+    dot: 'bg-emerald-400',
+    badge: 'bg-emerald-950/40 border-emerald-800 text-emerald-400',
     label: 'Running',
   },
   deploying: {
-    dot: 'bg-blue-500 animate-pulse',
-    badge: 'bg-blue-50 text-blue-700 border-blue-200',
+    dot: 'bg-blue-400 animate-pulse',
+    badge: 'bg-blue-950/40 border-blue-800 text-blue-400',
     label: 'Deploying',
   },
   stopped: {
-    dot: 'bg-slate-400',
-    badge: 'bg-slate-50 text-slate-600 border-slate-200',
+    dot: 'bg-muted-foreground',
+    badge: 'bg-secondary border-border text-muted-foreground',
     label: 'Stopped',
   },
   paused: {
-    dot: 'bg-yellow-400',
-    badge: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    dot: 'bg-amber-400',
+    badge: 'bg-amber-950/40 border-amber-800 text-amber-400',
     label: 'Paused',
   },
   created: {
-    dot: 'bg-yellow-400',
-    badge: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    dot: 'bg-amber-400',
+    badge: 'bg-amber-950/40 border-amber-800 text-amber-400',
     label: 'Created',
   },
   restarting: {
-    dot: 'bg-yellow-500 animate-pulse',
-    badge: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    dot: 'bg-amber-500 animate-pulse',
+    badge: 'bg-amber-950/40 border-amber-800 text-amber-400',
     label: 'Restarting',
   },
   dead: {
     dot: 'bg-red-500',
-    badge: 'bg-red-50 text-red-700 border-red-200',
+    badge: 'bg-red-950/40 border-red-900 text-red-400',
     label: 'Dead',
   },
   removing: {
     dot: 'bg-red-400',
-    badge: 'bg-red-50 text-red-600 border-red-200',
+    badge: 'bg-red-950/40 border-red-900 text-red-400',
     label: 'Removing',
   },
   unhealthy: {
     dot: 'bg-red-500',
-    badge: 'bg-red-50 text-red-700 border-red-200',
+    badge: 'bg-red-950/40 border-red-900 text-red-400',
     label: 'Unhealthy',
   },
   down: {
-    dot: 'bg-slate-300',
-    badge: 'bg-slate-50 text-slate-500 border-slate-200',
+    dot: 'bg-muted-foreground/40',
+    badge: 'bg-secondary border-border text-muted-foreground',
     label: 'Down',
   },
   unknown: {
-    dot: 'bg-slate-300',
-    badge: 'bg-slate-50 text-slate-500 border-slate-200',
+    dot: 'bg-muted-foreground/30',
+    badge: 'bg-secondary border-border text-muted-foreground',
     label: 'Unknown',
   },
 };
@@ -80,7 +88,7 @@ function StateBadge({ state }: { state: StackState }) {
   const s = STATE_STYLES[state] ?? STATE_STYLES.unknown;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border px-2 py-0.5 text-xs font-medium ${s.badge}`}
+      className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium ${s.badge}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
       {s.label}
@@ -100,6 +108,8 @@ export const StacksPanel = () => {
   const [results, setResults] = useState<
     Record<string, ActionResult | undefined>
   >({});
+  const [search, setSearch] = useState('');
+  const [filterState, setFilterState] = useState<StackState | null>(null);
 
   const fetchStacks = async () => {
     setLoading(true);
@@ -138,14 +148,41 @@ export const StacksPanel = () => {
     }
   };
 
+  const availableStates = useMemo(() => {
+    const seen = new Set<StackState>();
+    stacks.forEach((s) => seen.add(s.info.state));
+    return Array.from(seen).sort();
+  }, [stacks]);
+
+  const filtered = useMemo(() => {
+    return stacks.filter((stack) => {
+      const matchesSearch =
+        search.trim() === '' ||
+        stack.name.toLowerCase().includes(search.toLowerCase().trim());
+      const matchesState =
+        filterState === null || stack.info.state === filterState;
+      return matchesSearch && matchesState;
+    });
+  }, [stacks, search, filterState]);
+
+  const hasFilters = search.trim() !== '' || filterState !== null;
+
   return (
-    <Card className="rounded-none">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Stacks</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Stacks
+          {stacks.length > 0 && (
+            <span className="text-muted-foreground text-sm font-normal">
+              {hasFilters
+                ? `${filtered.length} / ${stacks.length}`
+                : stacks.length}
+            </span>
+          )}
+        </CardTitle>
         <Button
           variant="outline"
           size="icon"
-          className="rounded-none"
           onClick={fetchStacks}
           disabled={loading}
         >
@@ -153,14 +190,84 @@ export const StacksPanel = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {error && <p className="mb-2 text-sm text-red-500">{error}</p>}
+        {error && <p className="text-destructive mb-3 text-sm">{error}</p>}
+
+        {/* Search & Filters */}
+        {stacks.length > 0 && (
+          <div className="mb-5 space-y-3">
+            <div className="relative">
+              <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar stack..."
+                className="pr-8 pl-9"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {availableStates.length > 1 && (
+              <div className="flex flex-wrap gap-2">
+                {availableStates.map((state) => {
+                  const s = STATE_STYLES[state] ?? STATE_STYLES.unknown;
+                  const isActive = filterState === state;
+                  const count = stacks.filter(
+                    (st) => st.info.state === state,
+                  ).length;
+                  return (
+                    <button
+                      key={state}
+                      onClick={() => setFilterState(isActive ? null : state)}
+                      className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                        isActive
+                          ? s.badge
+                          : 'border-border text-muted-foreground hover:text-foreground hover:border-border/80 bg-secondary'
+                      }`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+                      {s.label}
+                      <span className="opacity-60">({count})</span>
+                    </button>
+                  );
+                })}
+                {hasFilters && (
+                  <button
+                    onClick={() => {
+                      setSearch('');
+                      setFilterState(null);
+                    }}
+                    className="border-border text-muted-foreground hover:text-foreground bg-secondary inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                    Limpiar
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {!error && stacks.length === 0 && !loading && (
-          <p className="text-sm text-slate-400">
+          <p className="text-muted-foreground text-sm">
             No hay stacks o no hay credenciales configuradas.
           </p>
         )}
-        <div className="space-y-4">
-          {stacks.map((stack) => {
+
+        {filtered.length === 0 && stacks.length > 0 && (
+          <p className="text-muted-foreground text-sm">
+            No hay stacks que coincidan con los filtros.
+          </p>
+        )}
+
+        <div className="space-y-3">
+          {filtered.map((stack) => {
             const { info } = stack;
             const isPending = !!pending[stack.name];
             const result = results[stack.name];
@@ -170,13 +277,16 @@ export const StacksPanel = () => {
               info.latest_hash !== info.deployed_hash;
 
             return (
-              <div key={stack.id} className="space-y-3 border p-4">
+              <div
+                key={stack.id}
+                className="border-border bg-card space-y-3 rounded-lg border p-4"
+              >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-semibold">{stack.name}</p>
                     {info.status && (
-                      <p className="mt-0.5 text-xs text-slate-400">
+                      <p className="text-muted-foreground mt-0.5 text-sm">
                         {info.status}
                       </p>
                     )}
@@ -186,29 +296,29 @@ export const StacksPanel = () => {
 
                 {/* Repo / branch / commits */}
                 {info.repo && (
-                  <div className="space-y-1 text-xs text-slate-500">
+                  <div className="text-muted-foreground space-y-1 text-sm">
                     <div className="flex items-center gap-1.5">
-                      <GitBranch className="h-3 w-3 shrink-0" />
+                      <GitBranch className="h-3.5 w-3.5 shrink-0" />
                       <a
                         href={info.repo_link || '#'}
                         target="_blank"
                         rel="noreferrer"
-                        className="truncate hover:underline"
+                        className="hover:text-foreground truncate transition-colors"
                       >
                         {info.repo}
                       </a>
-                      <span className="text-slate-300">·</span>
+                      <span className="text-border">·</span>
                       <span>{info.branch}</span>
                     </div>
                     {(info.deployed_hash || info.latest_hash) && (
                       <div className="flex items-center gap-1.5">
-                        <GitCommit className="h-3 w-3 shrink-0" />
-                        <span className="font-mono">
+                        <GitCommit className="h-3.5 w-3.5 shrink-0" />
+                        <span className="font-mono text-xs">
                           {info.deployed_hash ?? '—'}
                         </span>
                         {hasUpdate && (
-                          <span className="font-medium text-amber-500">
-                            → {info.latest_hash} (update available)
+                          <span className="text-primary text-xs font-medium">
+                            → {info.latest_hash} (update disponible)
                           </span>
                         )}
                       </div>
@@ -218,8 +328,8 @@ export const StacksPanel = () => {
 
                 {/* Warnings */}
                 {(info.project_missing || info.missing_files?.length > 0) && (
-                  <div className="flex items-center gap-1.5 text-xs text-red-600">
-                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                  <div className="text-destructive flex items-center gap-1.5 text-sm">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     {info.project_missing
                       ? 'Proyecto no encontrado en el host'
                       : `Archivos ausentes: ${info.missing_files.join(', ')}`}
@@ -232,15 +342,15 @@ export const StacksPanel = () => {
                     {info.services.map((svc) => (
                       <div
                         key={svc.service}
-                        className="flex items-center justify-between rounded bg-slate-50 px-2 py-1 text-xs"
+                        className="bg-muted flex items-center justify-between rounded-md px-3 py-1.5 text-sm"
                       >
                         <span className="font-medium">{svc.service}</span>
-                        <div className="flex items-center gap-2 text-slate-400">
-                          <span className="max-w-[180px] truncate font-mono">
+                        <div className="text-muted-foreground flex items-center gap-2">
+                          <span className="max-w-[200px] truncate font-mono text-xs">
                             {svc.image}
                           </span>
                           {svc.update_available && (
-                            <span className="font-medium text-amber-500">
+                            <span className="text-primary text-xs font-medium">
                               update
                             </span>
                           )}
@@ -257,7 +367,6 @@ export const StacksPanel = () => {
                       key={a.value}
                       size="sm"
                       variant="outline"
-                      className="rounded-none text-xs"
                       disabled={isPending}
                       onClick={() => handleAction(stack.name, a.value)}
                     >
@@ -270,7 +379,7 @@ export const StacksPanel = () => {
 
                 {result && (
                   <p
-                    className={`text-xs ${result.success ? 'text-green-600' : 'text-red-500'}`}
+                    className={`text-sm ${result.success ? 'text-emerald-400' : 'text-destructive'}`}
                   >
                     {result.message}
                   </p>

@@ -1,0 +1,81 @@
+---
+import Main from './main.astro';
+import { ButtonLogOut } from '@/components/features/login/buttonLogOut';
+
+const { title = 'Komodo' } = Astro.props;
+const { user } = Astro.locals;
+
+const NAV = [
+  { href: '/stacks', label: 'Stacks' },
+  { href: '/history', label: 'Historial' },
+  { href: '/deploy', label: 'Deploy' },
+  { href: '/credentials', label: 'Credenciales' },
+  { href: '/apikeys', label: 'API Keys' },
+];
+
+const path = Astro.url.pathname;
+---
+
+<Main title={`${title} — Komodo`}>
+  <div class="flex min-h-screen flex-col">
+    <header
+      class="border-border bg-card/50 sticky top-0 z-50 border-b backdrop-blur-sm"
+    >
+      <div class="mx-auto max-w-5xl px-6">
+        <div class="flex h-14 items-center gap-6">
+          <!-- Brand -->
+          <a href="/stacks" class="group flex shrink-0 items-center gap-2">
+            <div
+              class="bg-primary/20 group-hover:bg-primary/30 flex h-6 w-6 items-center justify-center rounded-md transition-colors"
+            >
+              <div class="bg-primary h-2.5 w-2.5 rounded-sm"></div>
+            </div>
+            <span
+              class="text-foreground group-hover:text-primary text-sm font-semibold transition-colors"
+              >Komodo</span
+            >
+          </a>
+
+          <!-- Divider -->
+          <div class="bg-border h-5 w-px shrink-0"></div>
+
+          <!-- Nav links -->
+          <nav class="flex min-w-0 flex-1 items-center gap-1">
+            {
+              NAV.map((item) => {
+                const isActive =
+                  path === item.href || path.startsWith(item.href + '/');
+                return (
+                  <a
+                    href={item.href}
+                    class={`rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })
+            }
+          </nav>
+
+          <!-- User -->
+          <div class="flex shrink-0 items-center gap-3">
+            <span
+              class="text-muted-foreground hidden max-w-[160px] truncate text-xs lg:block"
+            >
+              {user?.email}
+            </span>
+            <ButtonLogOut client:only="react" />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-5xl flex-1 px-6 py-8">
+      <slot />
+    </main>
+  </div>
+</Main>

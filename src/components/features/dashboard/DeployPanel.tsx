@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { deployApi, type DeployAction } from '@/lib/api';
+import { deployApi, stacksApi, type DeployAction } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -14,10 +20,19 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { CheckCircle2, XCircle, Layers } from 'lucide-react';
 
-const ACTIONS: { value: DeployAction; label: string }[] = [
-  { value: 'pull', label: 'Pull' },
-  { value: 'redeploy', label: 'Redeploy' },
+const ACTIONS: { value: DeployAction; label: string; description: string }[] = [
+  {
+    value: 'pull',
+    label: 'Pull',
+    description: 'Actualiza la imagen sin reiniciar el stack',
+  },
+  {
+    value: 'redeploy',
+    label: 'Redeploy',
+    description: 'Detiene y vuelve a levantar el stack completo',
+  },
 ];
 
 const deploySchema = z.object({
@@ -33,11 +48,51 @@ export const DeployPanel = () => {
     message: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [stackNames, setStackNames] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    stacksApi
+      .list()
+      .then((res) => {
+        setStackNames(res.data.stacks.map((s) => s.name));
+      })
+      .catch(() => {});
+  }, []);
 
   const form = useForm<DeployFormValues>({
     resolver: zodResolver(deploySchema),
     defaultValues: { stack: '', action: 'redeploy' as const },
   });
+
+  const watchedStack = form.watch('stack');
+
+  useEffect(() => {
+    const query = watchedStack.trim().toLowerCase();
+    setSuggestions(
+      query.length === 0
+        ? stackNames
+        : stackNames.filter((n) => n.toLowerCase().includes(query)),
+    );
+  }, [watchedStack, stackNames]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const onSubmit = async (data: DeployFormValues) => {
     setResult(null);
@@ -54,74 +109,134 @@ export const DeployPanel = () => {
   };
 
   return (
-    <Card className="rounded-none">
-      <CardHeader>
-        <CardTitle>Trigger Deploy</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-            <FormField
-              control={form.control}
-              name="stack"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stack</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="mi-stack"
-                      className="rounded-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="action"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Acción</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className="bg-background focus:ring-ring w-full border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
-                    >
-                      {ACTIONS.map((a) => (
-                        <option key={a.value} value={a.value}>
-                          {a.label}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              className="w-full rounded-none"
-              disabled={loading}
-            >
-              {loading ? 'Ejecutando...' : 'Ejecutar'}
-            </Button>
-          </form>
-        </Form>
+    <div className="max-w-2xl space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold">Trigger Deploy</h2>
+        <p className="text-muted-foreground mt-0.5 text-sm">
+          Lanza un despliegue manual sobre cualquier stack configurado.
+        </p>
+      </div>
 
-        {result && (
-          <div
-            className={`border p-3 text-sm ${
-              result.success
-                ? 'border-green-500 bg-green-50 text-green-700'
-                : 'border-red-500 bg-red-50 text-red-700'
-            }`}
-          >
-            {result.message}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <Card>
+        <CardContent className="space-y-6 pt-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Stack with autocomplete */}
+              <FormField
+                control={form.control}
+                name="stack"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Stack</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          ref={inputRef}
+                          placeholder="Escribe o selecciona un stack..."
+                          autoComplete="off"
+                          onFocus={() => setShowSuggestions(true)}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setShowSuggestions(true);
+                          }}
+                        />
+                        {showSuggestions && suggestions.length > 0 && (
+                          <div
+                            ref={suggestionsRef}
+                            className="border-border absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-md border shadow-xl"
+                            style={{ backgroundColor: '#111111' }}
+                          >
+                            {suggestions.map((name) => (
+                              <button
+                                key={name}
+                                type="button"
+                                className="hover:bg-accent text-foreground flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  field.onChange(name);
+                                  setShowSuggestions(false);
+                                }}
+                              >
+                                <Layers className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                                {name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Action cards */}
+              <FormField
+                control={form.control}
+                name="action"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Acción</FormLabel>
+                    <FormControl>
+                      <div className="grid grid-cols-2 gap-3">
+                        {ACTIONS.map((a) => (
+                          <button
+                            key={a.value}
+                            type="button"
+                            onClick={() => field.onChange(a.value)}
+                            className={`flex flex-col items-start gap-1.5 rounded-lg border p-4 text-left transition-colors ${
+                              field.value === a.value
+                                ? 'border-primary bg-primary/10'
+                                : 'border-border bg-muted/40 hover:bg-accent hover:border-border/80'
+                            }`}
+                          >
+                            <span
+                              className={`text-sm font-semibold ${field.value === a.value ? 'text-primary' : ''}`}
+                            >
+                              {a.label}
+                            </span>
+                            <span className="text-muted-foreground text-xs leading-snug">
+                              {a.description}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? 'Ejecutando...' : 'Ejecutar deploy'}
+              </Button>
+            </form>
+          </Form>
+
+          {result && (
+            <div
+              className={`flex items-start gap-3 rounded-lg border p-4 text-sm ${
+                result.success
+                  ? 'border-emerald-800 bg-emerald-950/20 text-emerald-400'
+                  : 'text-destructive border-red-900 bg-red-950/20'
+              }`}
+            >
+              {result.success ? (
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              ) : (
+                <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              )}
+              {result.message}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };

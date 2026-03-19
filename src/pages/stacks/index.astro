@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '@/layouts/dashboard.astro';
+import { StacksPanel } from '@/components/features/dashboard/StacksPanel';
+---
+
+<DashboardLayout title="Stacks">
+  <StacksPanel client:only="react" />
+</DashboardLayout>

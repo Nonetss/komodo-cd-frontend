@@ -3,30 +3,32 @@ import { CredentialsPanel } from './CredentialsPanel';
 import { DeployPanel } from './DeployPanel';
 import { StacksPanel } from './StacksPanel';
 import { ApiKeysPanel } from './ApiKeysPanel';
+import { HistoryPanel } from './HistoryPanel';
 
-type Tab = 'deploy' | 'stacks' | 'credentials' | 'apikeys';
+type Tab = 'stacks' | 'history' | 'deploy' | 'credentials' | 'apikeys';
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'deploy', label: 'Deploy' },
   { id: 'stacks', label: 'Stacks' },
+  { id: 'history', label: 'Historial' },
+  { id: 'deploy', label: 'Deploy' },
   { id: 'credentials', label: 'Credenciales' },
   { id: 'apikeys', label: 'API Keys' },
 ];
 
 export const Dashboard = () => {
-  const [tab, setTab] = useState<Tab>('deploy');
+  const [tab, setTab] = useState<Tab>('stacks');
 
   return (
     <div className="space-y-6">
-      <div className="flex border-b">
+      <div className="border-border flex overflow-x-auto border-b">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
+            className={`px-4 py-2.5 text-xs tracking-widest whitespace-nowrap uppercase transition-colors ${
               tab === t.id
-                ? 'border-b-2 border-black text-black'
-                : 'text-slate-500 hover:text-black'
+                ? 'border-primary text-primary border-b-2'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {t.label}
@@ -34,12 +36,13 @@ export const Dashboard = () => {
         ))}
       </div>
 
+      {tab === 'stacks' && <StacksPanel />}
+      {tab === 'history' && <HistoryPanel />}
       {tab === 'deploy' && (
         <div className="max-w-md">
           <DeployPanel />
         </div>
       )}
-      {tab === 'stacks' && <StacksPanel />}
       {tab === 'credentials' && (
         <div className="max-w-md">
           <CredentialsPanel />

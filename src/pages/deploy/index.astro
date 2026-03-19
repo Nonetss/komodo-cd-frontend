@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '@/layouts/dashboard.astro';
+import { DeployPanel } from '@/components/features/dashboard/DeployPanel';
+---
+
+<DashboardLayout title="Deploy">
+  <DeployPanel client:only="react" />
+</DashboardLayout>

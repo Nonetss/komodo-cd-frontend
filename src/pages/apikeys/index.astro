@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '@/layouts/dashboard.astro';
+import { ApiKeysPanel } from '@/components/features/dashboard/ApiKeysPanel';
+---
+
+<DashboardLayout title="API Keys">
+  <ApiKeysPanel client:only="react" />
+</DashboardLayout>

@@ -62,21 +62,19 @@ export const ApiKeysPanel = () => {
   };
 
   return (
-    <Card className="rounded-none">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>API Keys</CardTitle>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="icon"
-            className="rounded-none"
             onClick={fetchKeys}
             disabled={loading}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
           <Button
-            className="rounded-none"
             size="sm"
             onClick={() => {
               setShowForm((v) => !v);
@@ -89,34 +87,36 @@ export const ApiKeysPanel = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-destructive text-sm">{error}</p>}
 
         {createdKey && (
-          <div className="space-y-2 border border-green-500 bg-green-50 p-3">
-            <p className="text-sm font-medium text-green-700">
+          <div className="space-y-3 rounded-lg border border-emerald-800 bg-emerald-950/20 p-4">
+            <p className="text-sm font-medium text-emerald-400">
               Key creada. Cópiala ahora, no se mostrará de nuevo.
             </p>
             <div className="flex gap-2">
               <Input
                 readOnly
                 value={createdKey}
-                className="rounded-none font-mono text-xs"
+                className="font-mono text-xs"
               />
               <Button
                 variant="outline"
                 size="icon"
-                className="shrink-0 rounded-none"
+                className="shrink-0"
                 onClick={() => handleCopy(createdKey)}
               >
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-4 w-4 text-emerald-400" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
               </Button>
             </div>
-            <p className="text-xs text-slate-500">Úsala en GitHub Actions:</p>
-            <pre className="overflow-x-auto rounded bg-slate-100 p-2 text-xs">
+            <p className="text-muted-foreground text-xs">
+              Úsala en GitHub Actions:
+            </p>
+            <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs">
               {`curl -X POST https://tu-dominio.com/api/v0/deploy \\
   -H "x-api-key: ${createdKey}" \\
   -H "Content-Type: application/json" \\
@@ -131,41 +131,39 @@ export const ApiKeysPanel = () => {
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
               placeholder="nombre (ej: github-actions)"
-              className="rounded-none"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
-            <Button className="shrink-0 rounded-none" onClick={handleCreate}>
+            <Button className="shrink-0" onClick={handleCreate}>
               Crear
             </Button>
           </div>
         )}
 
         {keys.length === 0 && !loading && (
-          <p className="text-sm text-slate-400">No hay API keys.</p>
+          <p className="text-muted-foreground text-sm">No hay API keys.</p>
         )}
 
         <div className="space-y-2">
           {keys.map((k) => (
             <div
               key={k.id}
-              className="flex items-center justify-between border p-3"
+              className="border-border bg-card flex items-center justify-between rounded-lg border p-3"
             >
               <div>
                 <p className="font-medium">{k.name ?? '—'}</p>
-                <p className="font-mono text-xs text-slate-400">
+                <p className="text-muted-foreground font-mono text-xs">
                   {k.start ? `${k.start}...` : k.id}
                 </p>
-                <p className="text-xs text-slate-400">
-                  Creada: {new Date(k.createdAt).toLocaleDateString()}
+                <p className="text-muted-foreground text-xs">
+                  {new Date(k.createdAt).toLocaleDateString()}
                 </p>
               </div>
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-none"
                 onClick={() => handleDelete(k.id)}
               >
-                <Trash2 className="h-4 w-4 text-red-500" />
+                <Trash2 className="text-destructive h-4 w-4" />
               </Button>
             </div>
           ))}
