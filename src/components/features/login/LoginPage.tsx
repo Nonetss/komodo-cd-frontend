@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { authClient } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,6 +24,8 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
+  const [loginError, setLoginError] = useState<string | null>(null);
+
   const form = useForm<LoginFormValues>({
     defaultValues: {
       email: '',
@@ -31,14 +34,16 @@ export const LoginPage = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    await authClient.signIn
-      .email({
-        email: data.email,
-        password: data.password,
-      })
-      .then(() => {
-        navigate('/');
-      });
+    setLoginError(null);
+    const { error } = await authClient.signIn.email({
+      email: data.email,
+      password: data.password,
+    });
+    if (error) {
+      setLoginError('Email o contraseña incorrectos');
+      return;
+    }
+    navigate('/');
   };
 
   const handleGoogleLogin = async () => {
@@ -130,6 +135,11 @@ export const LoginPage = () => {
                     </FormItem>
                   )}
                 />
+
+                {loginError && (
+                  <p className="text-destructive text-sm">{loginError}</p>
+                )}
+
                 <Button type="submit" className="mt-2 w-full">
                   Iniciar sesión
                 </Button>

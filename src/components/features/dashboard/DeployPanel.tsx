@@ -33,11 +33,16 @@ const ACTIONS: { value: DeployAction; label: string; description: string }[] = [
     label: 'Redeploy',
     description: 'Detiene y vuelve a levantar el stack completo',
   },
+  {
+    value: 'pull-redeploy',
+    label: 'Pull + Redeploy',
+    description: 'Actualiza la imagen y vuelve a desplegar',
+  },
 ];
 
 const deploySchema = z.object({
   stack: z.string().min(1, 'Requerido'),
-  action: z.enum(['pull', 'redeploy']),
+  action: z.enum(['pull', 'redeploy', 'pull-redeploy']),
 });
 
 type DeployFormValues = z.infer<typeof deploySchema>;
@@ -144,8 +149,7 @@ export const DeployPanel = () => {
                         {showSuggestions && suggestions.length > 0 && (
                           <div
                             ref={suggestionsRef}
-                            className="border-border absolute top-full right-0 left-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-md border shadow-xl"
-                            style={{ backgroundColor: '#111111' }}
+                            className="bg-card border-border absolute top-full right-0 left-0 z-50 mt-1 max-h-52 overflow-y-auto rounded-md border shadow-xl"
                           >
                             {suggestions.map((name) => (
                               <button

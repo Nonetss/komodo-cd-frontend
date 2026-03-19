@@ -11,6 +11,12 @@ const APP_URL =
     ? window.location.origin
     : 'http://localhost:4321');
 
+function Skeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`bg-muted/60 animate-pulse rounded-md ${className}`} />
+  );
+}
+
 export const ApiKeysPanel = () => {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(false);
@@ -19,6 +25,7 @@ export const ApiKeysPanel = () => {
   const [showForm, setShowForm] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const fetchKeys = async () => {
     setLoading(true);
@@ -37,6 +44,12 @@ export const ApiKeysPanel = () => {
     fetchKeys();
   }, []);
 
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const t = setTimeout(() => setConfirmDelete(null), 3000);
+    return () => clearTimeout(t);
+  }, [confirmDelete]);
+
   const handleCreate = async () => {
     if (!newKeyName.trim()) return;
     setError(null);
@@ -52,6 +65,11 @@ export const ApiKeysPanel = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (confirmDelete !== id) {
+      setConfirmDelete(id);
+      return;
+    }
+    setConfirmDelete(null);
     setError(null);
     try {
       await apiKeysApi.delete(id);
@@ -67,6 +85,9 @@ export const ApiKeysPanel = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const locale =
+    typeof navigator !== 'undefined' ? navigator.language : 'es-ES';
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -77,6 +98,7 @@ export const ApiKeysPanel = () => {
             size="icon"
             onClick={fetchKeys}
             disabled={loading}
+            aria-label="Actualizar API keys"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
@@ -111,6 +133,7 @@ export const ApiKeysPanel = () => {
                 size="icon"
                 className="shrink-0"
                 onClick={() => handleCopy(createdKey)}
+                aria-label="Copiar API key"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -145,6 +168,25 @@ export const ApiKeysPanel = () => {
           </div>
         )}
 
+        {/* Skeleton */}
+        {loading && keys.length === 0 && (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="border-border flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-40" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </div>
+            ))}
+          </div>
+        )}
+
         {keys.length === 0 && !loading && (
           <p className="text-muted-foreground text-sm">No hay API keys.</p>
         )}
@@ -161,16 +203,28 @@ export const ApiKeysPanel = () => {
                   {k.start ? `${k.start}...` : k.id}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  {new Date(k.createdAt).toLocaleDateString()}
+                  {new Intl.DateTimeFormat(locale, {
+                    dateStyle: 'short',
+                  }).format(new Date(k.createdAt))}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleDelete(k.id)}
-              >
-                <Trash2 className="text-destructive h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                {confirmDelete === k.id && (
+                  <span className="text-destructive text-xs">¿Eliminar?</span>
+                )}
+                <Button
+                  variant={confirmDelete === k.id ? 'destructive' : 'outline'}
+                  size="icon"
+                  onClick={() => handleDelete(k.id)}
+                  aria-label={
+                    confirmDelete === k.id
+                      ? 'Confirmar eliminación'
+                      : 'Eliminar API key'
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>

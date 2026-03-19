@@ -39,6 +39,12 @@ const saveSchema = z.object({
 
 type SaveFormValues = z.infer<typeof saveSchema>;
 
+function Skeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`bg-muted/60 animate-pulse rounded-md ${className}`} />
+  );
+}
+
 export const CredentialsPanel = () => {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,6 +52,7 @@ export const CredentialsPanel = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const form = useForm<SaveFormValues>({
     resolver: zodResolver(saveSchema),
@@ -69,6 +76,12 @@ export const CredentialsPanel = () => {
     fetchCredentials();
   }, []);
 
+  useEffect(() => {
+    if (!confirmDeleteId) return;
+    const t = setTimeout(() => setConfirmDeleteId(null), 3000);
+    return () => clearTimeout(t);
+  }, [confirmDeleteId]);
+
   const onSubmit = async (data: SaveFormValues) => {
     setError(null);
     setSuccessMsg(null);
@@ -85,6 +98,11 @@ export const CredentialsPanel = () => {
 
   const handleDelete = async (cred: Credential) => {
     if (!cred.name) return;
+    if (confirmDeleteId !== cred.id) {
+      setConfirmDeleteId(cred.id);
+      return;
+    }
+    setConfirmDeleteId(null);
     setDeletingId(cred.id);
     setError(null);
     setSuccessMsg(null);
@@ -242,6 +260,24 @@ export const CredentialsPanel = () => {
         )}
 
         {/* Credentials list */}
+        {loading && credentials.length === 0 && (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[1, 2].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-3">
+                    <Skeleton className="h-10 w-10 shrink-0 rounded-lg" />
+                    <div className="min-w-0 flex-1 space-y-2 pt-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-40" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {credentials.length === 0 && !loading && !showForm && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center gap-3 py-16">
@@ -289,15 +325,33 @@ export const CredentialsPanel = () => {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-destructive shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-                    disabled={deletingId === cred.id}
-                    onClick={() => handleDelete(cred)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {confirmDeleteId === cred.id && (
+                      <span className="text-destructive text-xs">
+                        ¿Eliminar?
+                      </span>
+                    )}
+                    <Button
+                      variant={
+                        confirmDeleteId === cred.id ? 'destructive' : 'ghost'
+                      }
+                      size="icon"
+                      className={
+                        confirmDeleteId === cred.id
+                          ? 'shrink-0'
+                          : 'text-muted-foreground hover:text-destructive shrink-0 opacity-0 transition-opacity group-hover:opacity-100'
+                      }
+                      disabled={deletingId === cred.id}
+                      onClick={() => handleDelete(cred)}
+                      aria-label={
+                        confirmDeleteId === cred.id
+                          ? 'Confirmar eliminación'
+                          : 'Eliminar credencial'
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

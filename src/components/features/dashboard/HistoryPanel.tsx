@@ -7,7 +7,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 const ACTION_LABELS: Record<string, string> = {
   pull: 'Pull',
   redeploy: 'Redeploy',
+  'pull-redeploy': 'Pull + Redeploy',
 };
+
+function Skeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`bg-muted/60 animate-pulse rounded-md ${className}`} />
+  );
+}
 
 export const HistoryPanel = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -31,6 +38,9 @@ export const HistoryPanel = () => {
     fetchHistory();
   }, []);
 
+  const locale =
+    typeof navigator !== 'undefined' ? navigator.language : 'es-ES';
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -40,17 +50,42 @@ export const HistoryPanel = () => {
           size="icon"
           onClick={fetchHistory}
           disabled={loading}
+          aria-label="Actualizar historial"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
       </CardHeader>
       <CardContent>
         {error && <p className="text-destructive text-sm">{error}</p>}
-        {!error && history.length === 0 && !loading && (
+
+        {/* Skeleton */}
+        {loading && history.length === 0 && (
+          <div className="space-y-0">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="border-border flex items-start gap-4 border-b py-3 last:border-0"
+              >
+                <Skeleton className="mt-0.5 h-4 w-4 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!error && !loading && history.length === 0 && (
           <p className="text-muted-foreground text-sm">
             No hay acciones registradas.
           </p>
         )}
+
         <div className="space-y-0">
           {history.map((item, idx) => (
             <div
@@ -83,10 +118,10 @@ export const HistoryPanel = () => {
                   <span>{item.userName ?? item.userEmail ?? item.userId}</span>
                   <span>·</span>
                   <span>
-                    {new Date(item.createdAt).toLocaleString('es-ES', {
+                    {new Intl.DateTimeFormat(locale, {
                       dateStyle: 'short',
                       timeStyle: 'short',
-                    })}
+                    }).format(new Date(item.createdAt))}
                   </span>
                 </div>
               </div>

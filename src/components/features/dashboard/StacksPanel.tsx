@@ -100,6 +100,12 @@ const STATE_STYLES: Record<
   },
 };
 
+function Skeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`bg-muted/60 animate-pulse rounded-md ${className}`} />
+  );
+}
+
 function StateBadge({ state }: { state: StackState }) {
   const s = STATE_STYLES[state] ?? STATE_STYLES.unknown;
   return (
@@ -257,6 +263,7 @@ export const StacksPanel = () => {
           size="icon"
           onClick={fetchStacks}
           disabled={loading}
+          aria-label="Actualizar stacks"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
@@ -315,6 +322,31 @@ export const StacksPanel = () => {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Skeleton */}
+        {loading && stacks.length === 0 && (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="border-border space-y-3 rounded-lg border p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-md" />
+                </div>
+                <Skeleton className="h-3 w-full" />
+                <div className="flex gap-2 pt-1">
+                  <Skeleton className="h-8 w-16 rounded-md" />
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -428,9 +460,11 @@ export const StacksPanel = () => {
                       disabled={isPending}
                       onClick={() => handleAction(stack.name, a.value)}
                     >
-                      {isPending && pending[stack.name] === a.value
-                        ? '...'
-                        : a.label}
+                      {isPending && pending[stack.name] === a.value ? (
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        a.label
+                      )}
                     </Button>
                   ))}
                 </div>
