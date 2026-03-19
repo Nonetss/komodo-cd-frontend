@@ -3,8 +3,8 @@ name: Docker Image CI
 on:
   push:
     branches:
-      - 'v*'
-      - 'main'
+      - main
+      - "v*"
 
 jobs:
   build:
@@ -16,22 +16,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ github.repository }}
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[:upper:]' '[:lower:]')
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-,format=short
 
-          BRANCH=${{ github.ref_name }}
-          SHA=$(echo ${{ github.sha }} | cut -c1-8)
-
-          docker build . \
-            -t $IMAGE_ID:latest \
-            -t $IMAGE_ID:$BRANCH \
-            -t $IMAGE_ID:$BRANCH-$SHA
-
-          docker push $IMAGE_ID:latest
-          docker push $IMAGE_ID:$BRANCH
-          docker push $IMAGE_ID:$BRANCH-$SHA
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            PUBLIC_APP_URL=${{ vars.APP_URL }}
+            BETTER_AUTH_URL=${{ vars.APP_URL }}
