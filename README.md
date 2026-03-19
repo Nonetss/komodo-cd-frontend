@@ -7,7 +7,7 @@ Dashboard web para gestionar deploys sobre stacks de [Komodo](https://komo.do). 
 - **[Astro 6](https://astro.build/)** — SSR con Node adapter
 - **[React 19](https://react.dev/)** — Componentes interactivos
 - **[Tailwind CSS 4](https://tailwindcss.com/)** + **[Shadcn UI](https://ui.shadcn.com/)** — UI
-- **[Better Auth](https://www.better-auth.com/)** — Cliente de autenticación (sesión + SSO)
+- **[Better Auth](https://www.better-auth.com/)** — Cliente de autenticación con soporte de sesión
 - **[Bun](https://bun.sh/)** — Runtime y gestor de paquetes
 - **Nginx** — Reverse proxy en producción (une frontend + backend en un solo puerto)
 
