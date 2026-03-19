@@ -46,12 +46,12 @@ export const LoginPage = () => {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
-        {/* Brand — mismo estilo que el header */}
-        <div className="flex items-center justify-center gap-2">
-          <div className="bg-primary/15 border-primary/20 flex h-7 w-7 items-center justify-center rounded-lg border">
-            <div className="bg-primary h-3 w-3 rounded-sm" />
-          </div>
-          <span className="text-lg font-semibold tracking-tight">Komodo</span>
+        {/* Brand */}
+        <div className="flex flex-col items-center gap-3">
+          <img src="/logo.webp" alt="Komodo CD" className="h-16 w-auto" />
+          <span className="text-lg font-semibold tracking-tight">
+            Komodo CD
+          </span>
         </div>
 
         <Card>

@@ -1,133 +1,99 @@
-# Frontend Template - Astro + Better Auth + Shadcn UI
+# Komodo Frontend
 
-Template de frontend moderno y listo para producción usando **Astro 5**, **React**, **Tailwind CSS 4** y **Shadcn UI**. Diseñado para trabajar en conjunto con el backend [hono-template](https://github.com/Nonetss/hono-template).
+Dashboard web para gestionar deploys sobre stacks de [Komodo](https://komo.do). Construido con **Astro 6** + **React 19**, **Tailwind CSS 4** y **Shadcn UI**. Se comunica con el [backend](../backend) via proxy Nginx en producción.
 
-## Características
+## Stack
 
-- **Astro 5**: Framework web con SSR y Node adapter.
-- **React 19**: Integración completa para componentes interactivos.
-- **Tailwind CSS 4**: Estilos utilitarios de última generación.
-- **Shadcn UI**: Componentes accesibles y personalizables.
-- **Better Auth Client**: Autenticación integrada con soporte para email/password, OAuth y SSO.
-- **Bun**: Runtime y gestor de paquetes ultrarrápido.
-- **Docker Ready**: Listo para desplegar con Docker y Nginx como reverse proxy.
-- **Linting & Formateo**: Prettier y Husky preconfigurados.
+- **[Astro 6](https://astro.build/)** — SSR con Node adapter
+- **[React 19](https://react.dev/)** — Componentes interactivos
+- **[Tailwind CSS 4](https://tailwindcss.com/)** + **[Shadcn UI](https://ui.shadcn.com/)** — UI
+- **[Better Auth](https://www.better-auth.com/)** — Cliente de autenticación (sesión + SSO)
+- **[Bun](https://bun.sh/)** — Runtime y gestor de paquetes
+- **Nginx** — Reverse proxy en producción (une frontend + backend en un solo puerto)
 
-## Stack Completo
+## Funcionalidades
 
-Este frontend está diseñado para funcionar con:
+- **Stacks** — Vista de todos los stacks de Komodo con estado, servicios, repo y commits. Acciones por stack: Pull, Redeploy, Pull + Redeploy. Snippets curl copiables por stack y acción.
+- **Historial** — Registro de todas las acciones ejecutadas con usuario, resultado y timestamp.
+- **Deploy manual** — Formulario con autocompletado de stacks para disparar deploys.
+- **Credenciales** — Gestión de las credenciales de Komodo (URL, API key, secret).
+- **API Keys** — Crear, listar y revocar API Keys para usar desde CI/CD.
 
-| Componente   | Repositorio                                                       |
-| ------------ | ----------------------------------------------------------------- |
-| **Frontend** | Este repositorio                                                  |
-| **Backend**  | [Nonetss/hono-template](https://github.com/Nonetss/hono-template) |
-
-El backend utiliza Hono, Better Auth y Drizzle ORM, también dockerizado y listo para producción.
-
-## Requisitos Previos
-
-- Bun instalado:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-- Backend [hono-template](https://github.com/Nonetss/hono-template) corriendo en `http://localhost:3000`
-
-## Instalación
-
-1. Clona el repositorio:
-
-```bash
-git clone <tu-repo-url>
-cd frontend
-```
-
-2. Instala las dependencias:
+## Desarrollo
 
 ```bash
 bun install
-```
-
-3. Configura las variables de entorno:
-
-```bash
 cp .env.example .env
+# Editar .env con tus valores
+bun dev
 ```
 
-4. Edita el archivo `.env` con tus valores.
+Requiere el backend corriendo en `http://localhost:3000`. El servidor de desarrollo arranca en `http://localhost:4321` y proxea `/api/*` al backend automáticamente.
 
-## Variables de Entorno
+## Variables de entorno
 
-```env
-# URL del backend
-BACKEND_URL="http://localhost:3000"
-```
+| Variable          | Build-time | Descripción                                                                                                           |
+| ----------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_URL` | ✅         | URL base para las llamadas de better-auth (`/api/auth/*`). En producción: la URL pública de la app                    |
+| `PUBLIC_APP_URL`  | ✅         | URL que se muestra en los snippets curl del dashboard. Si no se define, se usa `window.location.origin` como fallback |
+| `BACKEND_URL`     | —          | URL interna al backend. La usa Nginx para el proxy. Solo relevante en Docker (por defecto `http://backend:3000`)      |
 
-## Desarrollo local
+> Las variables marcadas como **Build-time** se hornean en el bundle durante `bun run build`. Hay que pasarlas como `ARG` al construir la imagen Docker.
+
+## Docker
+
+La imagen incluye Nginx que actúa como reverse proxy: sirve el frontend Astro en `/` y redirige `/api/*` al contenedor backend.
 
 ```bash
-bun install
-bun run dev
+docker build \
+  --build-arg PUBLIC_APP_URL=https://app.example.com \
+  --build-arg BETTER_AUTH_URL=https://app.example.com \
+  -t komodo-frontend .
+
+docker run -d \
+  -p 80:80 \
+  -e BACKEND_URL=http://backend:3000 \
+  komodo-frontend
 ```
 
-El servidor estará disponible en `http://localhost:4321`.
-
-## Autenticación
-
-El frontend incluye integración con Better Auth para:
-
-- **Login con email/password**: Formulario de login tradicional.
-- **OAuth (Google)**: Login con cuenta de Google.
-- **SSO (Authentik)**: Login con proveedores OIDC.
-
-Las peticiones de autenticación se hacen a través del proxy API (`/api/*`) que redirige al backend.
-
-## Producción con Docker
-
-Para levantar el proyecto con Nginx y el proxy configurado:
+O con el `docker-compose.yml` del repositorio raíz (recomendado):
 
 ```bash
-docker compose up --build
+cp ../.env.example ../.env
+# Editar ../.env
+docker compose -f ../docker-compose.yml up -d --build
 ```
-
-El servidor estará disponible en el puerto `4321` (o el que hayas configurado en `compose.yml`).
-
-## Estructura del Proyecto
-
-```
-src/
-├── components/          # Componentes React y Astro
-│   ├── features/        # Componentes de funcionalidades
-│   │   └── login/       # Página y botones de login
-│   └── ui/              # Componentes Shadcn UI
-├── layouts/             # Layouts de Astro
-├── lib/                 # Utilidades
-│   ├── auth.ts          # Cliente Better Auth
-│   └── utils.ts         # Helpers generales
-├── pages/               # Rutas de Astro
-│   ├── api/             # Proxy API hacia el backend
-│   ├── login/           # Página de login
-│   └── index.astro      # Página principal
-├── styles/              # Estilos globales
-│   └── global.css       # Variables CSS y Tailwind
-└── middleware.ts        # Middleware de autenticación
-```
-
-## Scripts Disponibles
-
-| Script            | Descripción                       |
-| ----------------- | --------------------------------- |
-| `bun run dev`     | Inicia el servidor con hot reload |
-| `bun run build`   | Construye para producción         |
-| `bun run preview` | Preview de la build de producción |
-| `bun run format`  | Formatea el código con Prettier   |
 
 ## CI/CD
 
-El proyecto incluye GitHub Actions para:
+El repositorio incluye un workflow de GitHub Actions (`.github/workflows/docker-build.yml`) que construye y publica la imagen en GHCR automáticamente en cada push a `main` o ramas con prefijo `v*`.
 
-- Build automático de imagen Docker
-- Push a registry en cada merge a `main`
+La imagen se publica como `ghcr.io/<owner>/<repo>:latest`.
 
-Ver `.github/workflows/docker-build.yml` para configuración.
+## Estructura
+
+```
+src/
+├── components/
+│   ├── features/
+│   │   └── dashboard/
+│   │       ├── Dashboard.tsx        # Tabs principales
+│   │       ├── StacksPanel.tsx      # Vista de stacks + acciones + curls
+│   │       ├── HistoryPanel.tsx     # Historial de acciones
+│   │       ├── DeployPanel.tsx      # Deploy manual
+│   │       ├── CredentialsPanel.tsx # Gestión de credenciales
+│   │       └── ApiKeysPanel.tsx     # Gestión de API Keys
+│   └── ui/                          # Componentes Shadcn UI
+├── lib/
+│   ├── api.ts                       # Cliente axios con todos los endpoints
+│   └── auth.ts                      # Cliente Better Auth
+├── pages/
+│   ├── index.astro                  # Redirige a /dashboard o /login
+│   ├── dashboard.astro              # Dashboard principal (protegida)
+│   └── login/                       # Página de login
+├── middleware.ts                    # Protección de rutas por sesión
+└── styles/
+gateway/
+└── nginx.conf                       # Config de Nginx (con envsubst)
+entrypoint.sh                        # Arranca Astro + Nginx
+```

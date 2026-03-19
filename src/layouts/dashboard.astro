@@ -2,7 +2,7 @@
 import Main from './main.astro';
 import { ButtonLogOut } from '@/components/features/login/buttonLogOut';
 
-const { title = 'Komodo' } = Astro.props;
+const { title = 'Komodo CD' } = Astro.props;
 const { user } = Astro.locals;
 
 const NAV = [
@@ -16,21 +16,22 @@ const NAV = [
 const path = Astro.url.pathname;
 ---
 
-<Main title={`${title} — Komodo`}>
+<Main title={`${title} — Komodo CD`}>
   <div class="flex min-h-screen flex-col">
     <header class="bg-card/60 sticky top-0 z-50 backdrop-blur-md">
       <div class="mx-auto max-w-5xl px-6">
         <div class="flex h-14 items-center gap-6">
           <!-- Brand -->
           <a href="/stacks" class="group flex shrink-0 items-center gap-2">
-            <div
-              class="bg-primary/15 group-hover:bg-primary/25 border-primary/20 flex h-7 w-7 items-center justify-center rounded-lg border transition-colors"
-            >
-              <div class="bg-primary h-3 w-3 rounded-sm"></div>
-            </div>
+            <img
+              src="/logo.webp"
+              alt=""
+              aria-hidden="true"
+              class="h-6 w-auto opacity-90 transition-opacity group-hover:opacity-100"
+            />
             <span
               class="text-foreground group-hover:text-primary text-sm font-semibold tracking-tight transition-colors"
-              >Komodo</span
+              >Komodo CD</span
             >
           </a>
 
