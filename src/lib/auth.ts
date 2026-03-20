@@ -6,15 +6,13 @@ const normalizeEnvUrl = (value?: string) => {
   return value.replace(/^['"]|['"]$/g, '');
 };
 
-// Usa el mismo origen del navegador cuando no hay configuración explícita,
-// para evitar CORS por puertos/hosts distintos en desarrollo.
-const baseURLEnv =
-  normalizeEnvUrl(import.meta.env.BETTER_AUTH_URL) ??
-  normalizeEnvUrl(import.meta.env.PUBLIC_APP_URL);
-
+// En navegador usamos SIEMPRE el mismo origen desde el que está corriendo la UI,
+// para que las cookies de sesión se emitan/usen con el host correcto.
 const baseURL =
-  baseURLEnv ??
-  (typeof window !== 'undefined' ? window.location.origin : undefined) ??
-  'http://localhost:4321';
+  typeof window !== 'undefined'
+    ? window.location.origin
+    : (normalizeEnvUrl(import.meta.env.BETTER_AUTH_URL) ??
+      normalizeEnvUrl(import.meta.env.PUBLIC_APP_URL) ??
+      'http://localhost:4321');
 
 export const authClient = createAuthClient({ baseURL });
