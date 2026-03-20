@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { CredentialsPanel } from './CredentialsPanel';
 import { DeployPanel } from './DeployPanel';
 import { StacksPanel } from './StacksPanel';
@@ -7,23 +9,32 @@ import { HistoryPanel } from './HistoryPanel';
 
 type Tab = 'stacks' | 'history' | 'deploy' | 'credentials' | 'apikeys';
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'stacks', label: 'Stacks' },
-  { id: 'history', label: 'Historial' },
-  { id: 'deploy', label: 'Deploy' },
-  { id: 'credentials', label: 'Credenciales' },
-  { id: 'apikeys', label: 'API Keys' },
+const TAB_IDS: Tab[] = [
+  'stacks',
+  'history',
+  'deploy',
+  'credentials',
+  'apikeys',
 ];
 
 const getTabFromUrl = (): Tab => {
   if (typeof window === 'undefined') return 'stacks';
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab') as Tab;
-  return TABS.some((t) => t.id === tab) ? tab : 'stacks';
+  return TAB_IDS.includes(tab) ? tab : 'stacks';
 };
 
 export const Dashboard = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>(getTabFromUrl);
+
+  const TABS: { id: Tab; label: string }[] = [
+    { id: 'stacks', label: t('nav.stacks') },
+    { id: 'history', label: t('nav.history') },
+    { id: 'deploy', label: t('nav.deploy') },
+    { id: 'credentials', label: t('nav.credentials') },
+    { id: 'apikeys', label: t('nav.apikeys') },
+  ];
 
   const handleTabChange = (newTab: Tab) => {
     setTab(newTab);

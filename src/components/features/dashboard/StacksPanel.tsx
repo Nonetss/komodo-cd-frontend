@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import {
   RefreshCw,
   GitBranch,
@@ -23,9 +25,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const APP_URL =
   (import.meta.env.PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ??
-  (typeof window !== 'undefined'
-    ? window.location.origin
-    : 'http://localhost:4321');
+  window.location.origin;
 
 const ACTIONS: { value: DeployAction; label: string }[] = [
   { value: 'pull', label: 'Pull' },
@@ -41,62 +41,62 @@ const CURL_ACTIONS: { value: DeployAction; label: string }[] = [
 
 const STATE_STYLES: Record<
   StackState,
-  { dot: string; badge: string; label: string }
+  { dot: string; badge: string; stateKey: string }
 > = {
   running: {
     dot: 'bg-emerald-400',
     badge: 'bg-emerald-950/40 border-emerald-800 text-emerald-400',
-    label: 'Running',
+    stateKey: 'running',
   },
   deploying: {
     dot: 'bg-blue-400 animate-pulse',
     badge: 'bg-blue-950/40 border-blue-800 text-blue-400',
-    label: 'Deploying',
+    stateKey: 'deploying',
   },
   stopped: {
     dot: 'bg-muted-foreground',
     badge: 'bg-secondary border-border text-muted-foreground',
-    label: 'Stopped',
+    stateKey: 'stopped',
   },
   paused: {
     dot: 'bg-amber-400',
     badge: 'bg-amber-950/40 border-amber-800 text-amber-400',
-    label: 'Paused',
+    stateKey: 'paused',
   },
   created: {
     dot: 'bg-amber-400',
     badge: 'bg-amber-950/40 border-amber-800 text-amber-400',
-    label: 'Created',
+    stateKey: 'created',
   },
   restarting: {
     dot: 'bg-amber-500 animate-pulse',
     badge: 'bg-amber-950/40 border-amber-800 text-amber-400',
-    label: 'Restarting',
+    stateKey: 'restarting',
   },
   dead: {
     dot: 'bg-red-500',
     badge: 'bg-red-950/40 border-red-900 text-red-400',
-    label: 'Dead',
+    stateKey: 'dead',
   },
   removing: {
     dot: 'bg-red-400',
     badge: 'bg-red-950/40 border-red-900 text-red-400',
-    label: 'Removing',
+    stateKey: 'removing',
   },
   unhealthy: {
     dot: 'bg-red-500',
     badge: 'bg-red-950/40 border-red-900 text-red-400',
-    label: 'Unhealthy',
+    stateKey: 'unhealthy',
   },
   down: {
     dot: 'bg-muted-foreground/40',
     badge: 'bg-secondary border-border text-muted-foreground',
-    label: 'Down',
+    stateKey: 'down',
   },
   unknown: {
     dot: 'bg-muted-foreground/30',
     badge: 'bg-secondary border-border text-muted-foreground',
-    label: 'Unknown',
+    stateKey: 'unknown',
   },
 };
 
@@ -107,18 +107,20 @@ function Skeleton({ className = '' }: { className?: string }) {
 }
 
 function StateBadge({ state }: { state: StackState }) {
+  const { t } = useTranslation();
   const s = STATE_STYLES[state] ?? STATE_STYLES.unknown;
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium ${s.badge}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-      {s.label}
+      {t(`stacks.states.${s.stateKey}`)}
     </span>
   );
 }
 
 function CurlSnippet({ stackName }: { stackName: string }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [copiedAction, setCopiedAction] = useState<string | null>(null);
 
@@ -138,7 +140,7 @@ function CurlSnippet({ stackName }: { stackName: string }) {
         className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs transition-colors"
       >
         <Terminal className="h-3.5 w-3.5" />
-        {open ? 'Ocultar curls' : 'Ver curls'}
+        {open ? t('stacks.hideCurls') : t('stacks.showCurls')}
       </button>
 
       {open && (
@@ -158,7 +160,9 @@ function CurlSnippet({ stackName }: { stackName: string }) {
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
-                  {copiedAction === a.value ? 'Copiado' : 'Copiar'}
+                  {copiedAction === a.value
+                    ? t('stacks.copied')
+                    : t('stacks.copy')}
                 </button>
               </div>
               <pre className="text-foreground overflow-x-auto font-mono text-xs leading-relaxed break-all whitespace-pre-wrap">
@@ -175,6 +179,7 @@ function CurlSnippet({ stackName }: { stackName: string }) {
 type ActionResult = { success: boolean; message: string };
 
 export const StacksPanel = () => {
+  const { t } = useTranslation();
   const [stacks, setStacks] = useState<Stack[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,7 +199,7 @@ export const StacksPanel = () => {
       const res = await stacksApi.list();
       setStacks(res.data.stacks);
     } catch (err: any) {
-      setError(err?.response?.data?.error ?? 'Error al cargar stacks');
+      setError(err?.response?.data?.error ?? t('stacks.errorLoad'));
     } finally {
       setLoading(false);
     }
@@ -214,7 +219,7 @@ export const StacksPanel = () => {
         [stackName]: { success: true, message: res.data.message },
       }));
     } catch (err: any) {
-      const msg = err?.response?.data?.error ?? 'Error al ejecutar la acción';
+      const msg = err?.response?.data?.error ?? t('stacks.errorAction');
       setResults((r) => ({
         ...r,
         [stackName]: { success: false, message: msg },
@@ -249,7 +254,7 @@ export const StacksPanel = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle className="flex min-w-0 items-center gap-2">
-          Stacks
+          {t('stacks.title')}
           {stacks.length > 0 && (
             <span className="text-muted-foreground text-sm font-normal">
               {hasFilters
@@ -263,7 +268,7 @@ export const StacksPanel = () => {
           size="icon"
           onClick={fetchStacks}
           disabled={loading}
-          aria-label="Actualizar stacks"
+          aria-label={t('stacks.refresh')}
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
@@ -278,7 +283,7 @@ export const StacksPanel = () => {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar stack..."
+                placeholder={t('stacks.search')}
                 className="pr-8 pl-9"
               />
               {search && (
@@ -305,7 +310,8 @@ export const StacksPanel = () => {
                       className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${isActive ? s.badge : 'border-border text-muted-foreground hover:text-foreground bg-secondary'}`}
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                      {s.label} <span className="opacity-60">({count})</span>
+                      {t(`stacks.states.${s.stateKey}`)}{' '}
+                      <span className="opacity-60">({count})</span>
                     </button>
                   );
                 })}
@@ -317,7 +323,7 @@ export const StacksPanel = () => {
                     }}
                     className="border-border text-muted-foreground hover:text-foreground bg-secondary inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs transition-colors"
                   >
-                    <X className="h-3 w-3" /> Limpiar
+                    <X className="h-3 w-3" /> {t('stacks.clear')}
                   </button>
                 )}
               </div>
@@ -351,14 +357,10 @@ export const StacksPanel = () => {
         )}
 
         {!error && stacks.length === 0 && !loading && (
-          <p className="text-muted-foreground text-sm">
-            No hay stacks o no hay credenciales configuradas.
-          </p>
+          <p className="text-muted-foreground text-sm">{t('stacks.empty')}</p>
         )}
         {filtered.length === 0 && stacks.length > 0 && (
-          <p className="text-muted-foreground text-sm">
-            No hay stacks que coincidan con los filtros.
-          </p>
+          <p className="text-muted-foreground text-sm">{t('stacks.noMatch')}</p>
         )}
 
         <div className="space-y-3">
@@ -411,7 +413,7 @@ export const StacksPanel = () => {
                         </span>
                         {hasUpdate && (
                           <span className="text-primary text-xs font-medium break-all">
-                            → {info.latest_hash} (update disponible)
+                            → {info.latest_hash} ({t('stacks.updateAvailable')})
                           </span>
                         )}
                       </div>
@@ -423,8 +425,10 @@ export const StacksPanel = () => {
                   <div className="text-destructive flex items-center gap-1.5 text-sm wrap-break-word">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     {info.project_missing
-                      ? 'Proyecto no encontrado en el host'
-                      : `Archivos ausentes: ${info.missing_files.join(', ')}`}
+                      ? t('stacks.projectMissing')
+                      : t('stacks.missingFiles', {
+                          files: info.missing_files.join(', '),
+                        })}
                   </div>
                 )}
 

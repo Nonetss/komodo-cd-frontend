@@ -1,17 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { deployApi, stacksApi, type DeployAction } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -22,32 +18,13 @@ import {
 } from '@/components/ui/form';
 import { CheckCircle2, XCircle, Layers } from 'lucide-react';
 
-const ACTIONS: { value: DeployAction; label: string; description: string }[] = [
-  {
-    value: 'pull',
-    label: 'Pull',
-    description: 'Actualiza la imagen sin reiniciar el stack',
-  },
-  {
-    value: 'redeploy',
-    label: 'Redeploy',
-    description: 'Detiene y vuelve a levantar el stack completo',
-  },
-  {
-    value: 'pull-redeploy',
-    label: 'Pull + Redeploy',
-    description: 'Actualiza la imagen y vuelve a desplegar',
-  },
-];
-
-const deploySchema = z.object({
-  stack: z.string().min(1, 'Requerido'),
-  action: z.enum(['pull', 'redeploy', 'pull-redeploy']),
-});
-
-type DeployFormValues = z.infer<typeof deploySchema>;
+type DeployFormValues = {
+  stack: string;
+  action: DeployAction;
+};
 
 export const DeployPanel = () => {
+  const { t, i18n } = useTranslation();
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
@@ -58,6 +35,36 @@ export const DeployPanel = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const ACTIONS = useMemo(
+    () => [
+      {
+        value: 'pull' as DeployAction,
+        label: 'Pull',
+        description: t('deploy.actions.pull.description'),
+      },
+      {
+        value: 'redeploy' as DeployAction,
+        label: 'Redeploy',
+        description: t('deploy.actions.redeploy.description'),
+      },
+      {
+        value: 'pull-redeploy' as DeployAction,
+        label: 'Pull + Redeploy',
+        description: t('deploy.actions.pullRedeploy.description'),
+      },
+    ],
+    [i18n.language],
+  );
+
+  const deploySchema = useMemo(
+    () =>
+      z.object({
+        stack: z.string().min(1, t('deploy.required')),
+        action: z.enum(['pull', 'redeploy', 'pull-redeploy']),
+      }),
+    [i18n.language],
+  );
 
   useEffect(() => {
     stacksApi
@@ -106,7 +113,7 @@ export const DeployPanel = () => {
       const res = await deployApi.trigger(data);
       setResult({ success: res.data.success, message: res.data.message });
     } catch (err: any) {
-      const msg = err?.response?.data?.error ?? 'Error al ejecutar el deploy';
+      const msg = err?.response?.data?.error ?? t('deploy.error');
       setResult({ success: false, message: msg });
     } finally {
       setLoading(false);
@@ -116,9 +123,9 @@ export const DeployPanel = () => {
   return (
     <div className="w-full max-w-2xl space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">Trigger Deploy</h2>
+        <h2 className="text-xl font-semibold">{t('deploy.title')}</h2>
         <p className="text-muted-foreground mt-0.5 text-sm">
-          Lanza un despliegue manual sobre cualquier stack configurado.
+          {t('deploy.description')}
         </p>
       </div>
 
@@ -132,13 +139,13 @@ export const DeployPanel = () => {
                 name="stack"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Stack</FormLabel>
+                    <FormLabel>{t('deploy.stackLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
                           ref={inputRef}
-                          placeholder="Escribe o selecciona un stack..."
+                          placeholder={t('deploy.stackPlaceholder')}
                           autoComplete="off"
                           onFocus={() => setShowSuggestions(true)}
                           onChange={(e) => {
@@ -181,7 +188,7 @@ export const DeployPanel = () => {
                 name="action"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Acción</FormLabel>
+                    <FormLabel>{t('deploy.actionLabel')}</FormLabel>
                     <FormControl>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {ACTIONS.map((a) => (
@@ -218,7 +225,7 @@ export const DeployPanel = () => {
                 size="lg"
                 disabled={loading}
               >
-                {loading ? 'Ejecutando...' : 'Ejecutar deploy'}
+                {loading ? t('deploy.executing') : t('deploy.submit')}
               </Button>
             </form>
           </Form>

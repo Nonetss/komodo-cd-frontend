@@ -29,6 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "husky": "^9.1.7",
+    "i18next": "^25.8.20",
     "lint-staged": "^16.2.7",
     "lucide-react": "^0.544.0",
     "openid-client": "^6.8.1",
@@ -38,6 +39,7 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hook-form": "^7.71.1",
+    "react-i18next": "^16.5.8",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "zod": "^4.3.5"

@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,14 +32,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-const saveSchema = z.object({
-  name: z.string().min(1, 'Requerido'),
-  url: z.string().url('URL inválida'),
-  key: z.string().min(1, 'Requerido'),
-  secret: z.string().min(1, 'Requerido'),
-});
-
-type SaveFormValues = z.infer<typeof saveSchema>;
+type SaveFormValues = {
+  name: string;
+  url: string;
+  key: string;
+  secret: string;
+};
 
 function Skeleton({ className = '' }: { className?: string }) {
   return (
@@ -46,6 +46,7 @@ function Skeleton({ className = '' }: { className?: string }) {
 }
 
 export const CredentialsPanel = () => {
+  const { t, i18n } = useTranslation();
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,17 @@ export const CredentialsPanel = () => {
   const [showForm, setShowForm] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+
+  const saveSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t('credentials.required')),
+        url: z.string().url(t('credentials.invalidUrl')),
+        key: z.string().min(1, t('credentials.required')),
+        secret: z.string().min(1, t('credentials.required')),
+      }),
+    [i18n.language],
+  );
 
   const form = useForm<SaveFormValues>({
     resolver: zodResolver(saveSchema),
@@ -66,7 +78,7 @@ export const CredentialsPanel = () => {
       const res = await credentialsApi.list();
       setCredentials(res.data.credentials);
     } catch {
-      setError('Error al cargar credenciales');
+      setError(t('credentials.errorLoad'));
     } finally {
       setLoading(false);
     }
@@ -78,8 +90,8 @@ export const CredentialsPanel = () => {
 
   useEffect(() => {
     if (!confirmDeleteId) return;
-    const t = setTimeout(() => setConfirmDeleteId(null), 3000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setConfirmDeleteId(null), 3000);
+    return () => clearTimeout(timer);
   }, [confirmDeleteId]);
 
   const onSubmit = async (data: SaveFormValues) => {
@@ -92,7 +104,7 @@ export const CredentialsPanel = () => {
       setShowForm(false);
       await fetchCredentials();
     } catch {
-      setError('Error al guardar credenciales');
+      setError(t('credentials.errorSave'));
     }
   };
 
@@ -108,10 +120,10 @@ export const CredentialsPanel = () => {
     setSuccessMsg(null);
     try {
       await credentialsApi.delete(cred.name);
-      setSuccessMsg(`Credencial "${cred.name}" eliminada`);
+      setSuccessMsg(t('credentials.deleted', { name: cred.name }));
       await fetchCredentials();
     } catch {
-      setError('Error al eliminar credencial');
+      setError(t('credentials.errorDelete'));
     } finally {
       setDeletingId(null);
     }
@@ -123,9 +135,9 @@ export const CredentialsPanel = () => {
       <div className="space-y-4 lg:col-span-2">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Credenciales Komodo</h2>
+            <h2 className="text-xl font-semibold">{t('credentials.title')}</h2>
             <p className="text-muted-foreground mt-0.5 text-sm">
-              Conexiones a instancias externas de Komodo
+              {t('credentials.description')}
             </p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -138,7 +150,7 @@ export const CredentialsPanel = () => {
               <RefreshCw
                 className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
               />
-              <span className="sm:hidden">Actualizar</span>
+              <span className="sm:hidden">{t('credentials.refresh')}</span>
             </Button>
             <Button
               onClick={() => {
@@ -149,7 +161,7 @@ export const CredentialsPanel = () => {
               className="w-full shrink-0 sm:w-auto"
             >
               <Plus className="h-4 w-4" />
-              {showForm ? 'Cancelar' : 'Añadir credencial'}
+              {showForm ? t('credentials.cancel') : t('credentials.add')}
             </Button>
           </div>
         </div>
@@ -169,10 +181,11 @@ export const CredentialsPanel = () => {
         {showForm && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Nueva credencial</CardTitle>
+              <CardTitle className="text-base">
+                {t('credentials.newTitle')}
+              </CardTitle>
               <CardDescription>
-                Conecta una instancia de Komodo introduciendo sus datos de
-                acceso
+                {t('credentials.newDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -187,9 +200,12 @@ export const CredentialsPanel = () => {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nombre</FormLabel>
+                          <FormLabel>{t('credentials.nameLabel')}</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="ej: production" />
+                            <Input
+                              {...field}
+                              placeholder={t('credentials.namePlaceholder')}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -200,11 +216,11 @@ export const CredentialsPanel = () => {
                       name="url"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>URL</FormLabel>
+                          <FormLabel>{t('credentials.urlLabel')}</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="https://komodo.example.com"
+                              placeholder={t('credentials.urlPlaceholder')}
                             />
                           </FormControl>
                           <FormMessage />
@@ -216,9 +232,12 @@ export const CredentialsPanel = () => {
                       name="key"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>API Key</FormLabel>
+                          <FormLabel>{t('credentials.apiKeyLabel')}</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="tu-api-key" />
+                            <Input
+                              {...field}
+                              placeholder={t('credentials.apiKeyPlaceholder')}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -229,11 +248,11 @@ export const CredentialsPanel = () => {
                       name="secret"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Secret</FormLabel>
+                          <FormLabel>{t('credentials.secretLabel')}</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="tu-secret"
+                              placeholder={t('credentials.secretPlaceholder')}
                               type="password"
                             />
                           </FormControl>
@@ -252,10 +271,10 @@ export const CredentialsPanel = () => {
                         form.reset();
                       }}
                     >
-                      Cancelar
+                      {t('credentials.cancel')}
                     </Button>
                     <Button type="submit" className="w-full sm:w-auto">
-                      Guardar credencial
+                      {t('credentials.save')}
                     </Button>
                   </div>
                 </form>
@@ -290,11 +309,11 @@ export const CredentialsPanel = () => {
                 <Server className="text-muted-foreground h-6 w-6" />
               </div>
               <p className="text-muted-foreground text-sm">
-                No hay credenciales guardadas
+                {t('credentials.empty')}
               </p>
               <Button size="sm" onClick={() => setShowForm(true)}>
                 <Plus className="h-4 w-4" />
-                Añadir la primera
+                {t('credentials.addFirst')}
               </Button>
             </CardContent>
           </Card>
@@ -333,7 +352,7 @@ export const CredentialsPanel = () => {
                   <div className="flex shrink-0 items-center gap-1.5">
                     {confirmDeleteId === cred.id && (
                       <span className="text-destructive text-xs">
-                        ¿Eliminar?
+                        {t('credentials.confirmDelete')}
                       </span>
                     )}
                     <Button
@@ -350,8 +369,8 @@ export const CredentialsPanel = () => {
                       onClick={() => handleDelete(cred)}
                       aria-label={
                         confirmDeleteId === cred.id
-                          ? 'Confirmar eliminación'
-                          : 'Eliminar credencial'
+                          ? t('credentials.confirmDeleteLabel')
+                          : t('credentials.deleteLabel')
                       }
                     >
                       <Trash2 className="h-4 w-4" />
@@ -370,18 +389,12 @@ export const CredentialsPanel = () => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-sm">
               <ShieldCheck className="text-primary h-4 w-4" />
-              ¿Qué son las credenciales?
+              {t('credentials.whatTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-muted-foreground space-y-3 text-sm">
-            <p>
-              Las credenciales permiten conectar esta instancia con servidores
-              remotos de Komodo para sincronizar y desplegar stacks.
-            </p>
-            <p>
-              Cada credencial requiere una URL, una API key y un secret
-              generados desde la instancia remota.
-            </p>
+            <p>{t('credentials.whatP1')}</p>
+            <p>{t('credentials.whatP2')}</p>
           </CardContent>
         </Card>
 
@@ -389,20 +402,20 @@ export const CredentialsPanel = () => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-sm">
               <KeyRound className="text-primary h-4 w-4" />
-              Cómo obtener las claves
+              {t('credentials.howTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="text-muted-foreground space-y-3 text-sm">
             <ol className="list-inside list-decimal space-y-2">
-              <li>Accede a tu instancia remota de Komodo</li>
+              <li>{t('credentials.howStep1')}</li>
               <li>
-                Ve a{' '}
+                {t('credentials.howStep2').split('Settings → API Keys')[0]}
                 <span className="text-foreground font-medium">
                   Settings → API Keys
                 </span>
               </li>
-              <li>Crea una nueva key y copia el secret</li>
-              <li>Pega ambos valores aquí junto con la URL</li>
+              <li>{t('credentials.howStep3')}</li>
+              <li>{t('credentials.howStep4')}</li>
             </ol>
           </CardContent>
         </Card>

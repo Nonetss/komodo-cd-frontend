@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { authClient } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -23,6 +25,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export const LoginPage = () => {
+  const { t } = useTranslation();
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const form = useForm<LoginFormValues>({
@@ -36,7 +39,7 @@ export const LoginPage = () => {
       password: data.password,
     });
     if (error) {
-      setLoginError('Email o contraseña incorrectos');
+      setLoginError(t('login.error'));
       return;
     }
     window.location.href = '/';
@@ -56,7 +59,7 @@ export const LoginPage = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-base font-medium">
-              Iniciar sesión
+              {t('login.title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -70,12 +73,12 @@ export const LoginPage = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('login.emailLabel')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="email"
-                          placeholder="tu@email.com"
+                          placeholder={t('login.emailPlaceholder')}
                           autoComplete="email"
                           spellCheck={false}
                         />
@@ -89,7 +92,7 @@ export const LoginPage = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contraseña</FormLabel>
+                      <FormLabel>{t('login.passwordLabel')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -107,7 +110,7 @@ export const LoginPage = () => {
                 )}
 
                 <Button type="submit" className="w-full">
-                  Iniciar sesión
+                  {t('login.submit')}
                 </Button>
               </form>
             </Form>

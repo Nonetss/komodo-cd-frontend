@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { Trash2, RefreshCw, Plus, Copy, Check } from 'lucide-react';
 import { apiKeysApi, type ApiKey } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -7,9 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const APP_URL =
   (import.meta.env.PUBLIC_APP_URL as string | undefined)?.replace(/\/$/, '') ??
-  (typeof window !== 'undefined'
-    ? window.location.origin
-    : 'http://localhost:4321');
+  window.location.origin;
 
 function Skeleton({ className = '' }: { className?: string }) {
   return (
@@ -18,6 +18,7 @@ function Skeleton({ className = '' }: { className?: string }) {
 }
 
 export const ApiKeysPanel = () => {
+  const { t, i18n } = useTranslation();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export const ApiKeysPanel = () => {
       const res = await apiKeysApi.list();
       setKeys(res.data.keys);
     } catch {
-      setError('Error al cargar las API keys');
+      setError(t('apikeys.errorLoad'));
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ export const ApiKeysPanel = () => {
       setShowForm(false);
       await fetchKeys();
     } catch {
-      setError('Error al crear la API key');
+      setError(t('apikeys.errorCreate'));
     }
   };
 
@@ -75,7 +76,7 @@ export const ApiKeysPanel = () => {
       await apiKeysApi.delete(id);
       await fetchKeys();
     } catch {
-      setError('Error al eliminar la API key');
+      setError(t('apikeys.errorDelete'));
     }
   };
 
@@ -85,20 +86,17 @@ export const ApiKeysPanel = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const locale =
-    typeof navigator !== 'undefined' ? navigator.language : 'es-ES';
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <CardTitle>API Keys</CardTitle>
+        <CardTitle>{t('apikeys.title')}</CardTitle>
         <div className="flex shrink-0 gap-2">
           <Button
             variant="outline"
             size="icon"
             onClick={fetchKeys}
             disabled={loading}
-            aria-label="Actualizar API keys"
+            aria-label={t('apikeys.refresh')}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
@@ -110,7 +108,7 @@ export const ApiKeysPanel = () => {
             }}
           >
             <Plus className="h-4 w-4" />
-            {showForm ? 'Cancelar' : 'Nueva'}
+            {showForm ? t('apikeys.cancel') : t('apikeys.new')}
           </Button>
         </div>
       </CardHeader>
@@ -120,7 +118,7 @@ export const ApiKeysPanel = () => {
         {createdKey && (
           <div className="space-y-3 rounded-lg border border-emerald-800 bg-emerald-950/20 p-4">
             <p className="text-sm font-medium text-emerald-400">
-              Key creada. Cópiala ahora, no se mostrará de nuevo.
+              {t('apikeys.keyCreated')}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
@@ -133,7 +131,7 @@ export const ApiKeysPanel = () => {
                 size="icon"
                 className="shrink-0"
                 onClick={() => handleCopy(createdKey)}
-                aria-label="Copiar API key"
+                aria-label={t('apikeys.copyKey')}
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -143,7 +141,7 @@ export const ApiKeysPanel = () => {
               </Button>
             </div>
             <p className="text-muted-foreground text-xs">
-              Úsala en GitHub Actions:
+              {t('apikeys.useInGithubActions')}
             </p>
             <pre className="bg-muted overflow-x-auto rounded-md p-3 text-xs break-all whitespace-pre-wrap">
               {`curl -X POST ${APP_URL}/api/v0/deploy \\
@@ -159,14 +157,14 @@ export const ApiKeysPanel = () => {
             <Input
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
-              placeholder="nombre (ej: github-actions)"
+              placeholder={t('apikeys.namePlaceholder')}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
             <Button
               className="w-full shrink-0 sm:w-auto"
               onClick={handleCreate}
             >
-              Crear
+              {t('apikeys.create')}
             </Button>
           </div>
         )}
@@ -191,7 +189,7 @@ export const ApiKeysPanel = () => {
         )}
 
         {keys.length === 0 && !loading && (
-          <p className="text-muted-foreground text-sm">No hay API keys.</p>
+          <p className="text-muted-foreground text-sm">{t('apikeys.empty')}</p>
         )}
 
         <div className="space-y-2">
@@ -206,14 +204,16 @@ export const ApiKeysPanel = () => {
                   {k.start ? `${k.start}...` : k.id}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  {new Intl.DateTimeFormat(locale, {
+                  {new Intl.DateTimeFormat(i18n.language, {
                     dateStyle: 'short',
                   }).format(new Date(k.createdAt))}
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 {confirmDelete === k.id && (
-                  <span className="text-destructive text-xs">¿Eliminar?</span>
+                  <span className="text-destructive text-xs">
+                    {t('apikeys.confirmDelete')}
+                  </span>
                 )}
                 <Button
                   variant={confirmDelete === k.id ? 'destructive' : 'outline'}
@@ -221,8 +221,8 @@ export const ApiKeysPanel = () => {
                   onClick={() => handleDelete(k.id)}
                   aria-label={
                     confirmDelete === k.id
-                      ? 'Confirmar eliminación'
-                      : 'Eliminar API key'
+                      ? t('apikeys.confirmDeleteLabel')
+                      : t('apikeys.deleteLabel')
                   }
                 >
                   <Trash2 className="h-4 w-4" />

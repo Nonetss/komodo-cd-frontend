@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import '@/lib/i18n';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { historyApi, type HistoryItem } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -17,6 +19,7 @@ function Skeleton({ className = '' }: { className?: string }) {
 }
 
 export const HistoryPanel = () => {
+  const { t, i18n } = useTranslation();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +31,7 @@ export const HistoryPanel = () => {
       const res = await historyApi.list();
       setHistory(res.data.history);
     } catch {
-      setError('Error al cargar el historial');
+      setError(t('history.error'));
     } finally {
       setLoading(false);
     }
@@ -38,19 +41,16 @@ export const HistoryPanel = () => {
     fetchHistory();
   }, []);
 
-  const locale =
-    typeof navigator !== 'undefined' ? navigator.language : 'es-ES';
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3">
-        <CardTitle>Historial</CardTitle>
+        <CardTitle>{t('history.title')}</CardTitle>
         <Button
           variant="outline"
           size="icon"
           onClick={fetchHistory}
           disabled={loading}
-          aria-label="Actualizar historial"
+          aria-label={t('history.refresh')}
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </Button>
@@ -81,9 +81,7 @@ export const HistoryPanel = () => {
         )}
 
         {!error && !loading && history.length === 0 && (
-          <p className="text-muted-foreground text-sm">
-            No hay acciones registradas.
-          </p>
+          <p className="text-muted-foreground text-sm">{t('history.empty')}</p>
         )}
 
         <div className="space-y-0">
@@ -118,7 +116,7 @@ export const HistoryPanel = () => {
                   <span>{item.userName ?? item.userEmail ?? item.userId}</span>
                   <span>·</span>
                   <span>
-                    {new Intl.DateTimeFormat(locale, {
+                    {new Intl.DateTimeFormat(i18n.language, {
                       dateStyle: 'short',
                       timeStyle: 'short',
                     }).format(new Date(item.createdAt))}
