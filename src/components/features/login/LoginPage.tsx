@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { navigate } from 'astro/virtual-modules/transitions-router.js';
 
 const loginSchema = z.object({
   email: z.string(),
@@ -40,7 +39,7 @@ export const LoginPage = () => {
       setLoginError('Email o contraseña incorrectos');
       return;
     }
-    navigate('/');
+    window.location.href = '/';
   };
 
   return (
