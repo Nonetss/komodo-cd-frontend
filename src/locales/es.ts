@@ -76,6 +76,12 @@ export default {
     refresh: 'Actualizar historial',
     empty: 'No hay acciones registradas.',
     error: 'Error al cargar el historial',
+    group: {
+      lastHour: 'Última hora',
+      today: 'Hoy',
+      lastWeek: 'Esta semana',
+      older: 'Más de una semana',
+    },
   },
   apikeys: {
     title: 'API Keys',

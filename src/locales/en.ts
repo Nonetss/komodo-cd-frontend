@@ -75,6 +75,12 @@ export default {
     refresh: 'Refresh history',
     empty: 'No actions recorded.',
     error: 'Error loading history',
+    group: {
+      lastHour: 'Last hour',
+      today: 'Today',
+      lastWeek: 'This week',
+      older: 'More than a week ago',
+    },
   },
   apikeys: {
     title: 'API Keys',
